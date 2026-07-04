@@ -10,6 +10,18 @@
 
 历史:最初有两个原型(React+D3 的琥珀 HUD 版、Three.js 真实地球版),2026-07-04 合并重实现为本作品后已删除;两者的数据(年总量+航线强度 / 日均量+平台份额+年度事件)全部并入 `index.html` 的 data.js 片段,来源注释保留。
 
+## 数据全面刷新(2026-07-04,workflow 研究+对抗验证后落地)
+
+原 proto 合并数值(2022=2.5B、2023=3.8B、2024=4.5B、2025=5.2B 预估等)被证实虚高/过期,已整体替换为一手 EU 数据。**当前 data.js 的 YEARS 是权威口径,不要回退到 proto 旧值。**
+
+- **口径决定(作者拍板)**:volume = **进入欧盟的全部 <€150 低价包裹总量**(European Commission / DG TAXUD 官方系列),其中约 91%(2024)来自中国;不是"仅中国→欧洲"。选此口径因为它能拿到 2022–2025 连续四年一手官方数、且与所有新闻/EC 通稿引用的数字一致。中国占比在 UI 里显著标注,不冒充"纯中国"。
+- **年度总量**:2020 ~0.8B、2021 ~1.0B(均为估算,`isEstimate:true`,早于 2021-07-01 IOSS/H7 系统性清关计数);2022 1.4B、2023 2.3B、2024 4.6B(~12.6M/日,91% 中国=4.17B)、2025 ~5.9B(完成年实际值,精确 DG TAXUD 5.88B,不再是预估)。
+- **dailyAvg = rawVolume / 365**(百万/日),内部自洽;saturation 仪表满量程 DAILY_MAX 从 15 提到 18(峰值 16.2 不再顶格),刻度改 0/9M/18M。
+- **Shein/Temu 份额**是模型估算(无一手逐包裹口径),由 DSA 月活(2024 Shein 108M vs Temu 92M;2025 145.7M vs 115.7M)+ Cargo Facts 空运吨位(5000 vs 4000 t/日)三角推算。**修正了旧数据"Temu 反超"的错误**:2024/2025 直邮空运包裹流里 Shein 仍以微弱优势领先(2024 0.53/0.47、2025 0.54/0.46)。
+- **终局事件**:欧盟理事会 2025-12-12 通过 €3/件关税,2026-07-01 生效——de minimis 时代结束,已写入 2025 event 与 INFO modal。
+- 航线级(机场对)强度保持不变(示意性,无一手逐航线数据)。proto 的 `volumeMultiplier` 字段已删除(未被引用,柱高由 rawVolume 推导)。
+- 来源族:EC/DG TAXUD、COM(2025)37、European Parliament、Council of the EU (Consilium)、Cargo Facts Consulting、Cross-Border Commerce Europe。footer/INFO modal 同步更新。
+
 ## glyphcss 关键事实(已验证)
 
 - 把 3D 多边形网格光栅化为单个 `<pre>` 里的 ASCII 字符,无 WebGL/canvas。

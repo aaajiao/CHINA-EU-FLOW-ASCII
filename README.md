@@ -39,9 +39,17 @@ python3 -m http.server 8000
 
 ## Data
 
-Eurostat · European Commission (DG TAXUD) · IATA · Cargo Facts Consulting ·
-Reuters / FT market reports. 2024–2025 figures include projections; per-year
-sources are shown in the panel and the INFO overlay.
+Volume = **total EU low-value (<€150) parcel imports** — the European Commission /
+DG TAXUD official series — of which ~91% (2024) is China→EU. Annual counts are
+official for 2022–2025 (1.4B, 2.3B, 4.6B, ~5.9B); 2020–2021 are estimated from the
+Commission's pre-reform ~1B/year baseline (no systematic customs count existed
+before the 1 July 2021 IOSS reform). 2025 is a completed-year actual, not a
+projection. Regulatory milestones are sourced to the European Parliament and the
+Council of the EU (Consilium) — including the €3-per-item duty that ended de minimis
+on 1 July 2026. The Shein/Temu split is triangulated from DSA monthly-active-user
+disclosures and Cargo Facts Consulting air-freight tonnage — a modeled estimate,
+not a published parcel-level figure. Per-year sources appear in the panel and the
+INFO overlay.
 
 ## Credits
 

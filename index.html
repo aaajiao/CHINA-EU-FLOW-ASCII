@@ -710,7 +710,7 @@ strong { text-decoration: underline; }
 </div>
 
 <!-- ── Footer: one character line ───────────────────────────────────── -->
-<footer id="ui-footer"><span class="k-shein">@ = SHEIN</span> &middot; <span class="k-temu">* = TEMU</span> &#9474; DATA: EUROSTAT &middot; EC &middot; IATA &middot; REUTERS &#9474; RENDERER: GLYPHCSS &#9474; DRAG=ORBIT SCROLL=ZOOM</footer>
+<footer id="ui-footer"><span class="k-shein">@ = SHEIN</span> &middot; <span class="k-temu">* = TEMU</span> &#9474; DATA: EC/DG TAXUD &middot; EU PARLIAMENT &middot; CONSILIUM &middot; CARGO FACTS &#9474; RENDERER: GLYPHCSS &#9474; DRAG=ORBIT SCROLL=ZOOM</footer>
 
 <!-- ── INFO & CONTEXT modal (DOS double-frame dialog) ───────────────── -->
 <div id="info-modal" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="modal-title">
@@ -726,9 +726,9 @@ strong { text-decoration: underline; }
           <div class="modal-col">
             <h3>TRADE BACKGROUND</h3>
             <p>
-              In recent years, leveraging the <strong>&ldquo;De Minimis&rdquo; exemption</strong>
-              &mdash; where parcels valued under &euro;150 are exempt from customs duties &mdash;
-              Chinese e-commerce platforms like Shein and Temu have seen explosive growth
+              Across the 2020&ndash;2025 boom, leveraging the <strong>&ldquo;De Minimis&rdquo; exemption</strong>
+              &mdash; under which parcels valued below &euro;150 entered the EU free of customs duty &mdash;
+              Chinese e-commerce platforms like Shein and Temu saw explosive growth
               in the European market.
             </p>
             <p>
@@ -737,16 +737,25 @@ strong { text-decoration: underline; }
               industrial hubs (Guangzhou, Shenzhen, Yiwu) to major European cargo hubs
               (Liege, London, Frankfurt), reshaping global air freight capacity.
             </p>
+            <p>
+              By 2024 this channel carried <strong>4.6 billion</strong> low-value parcels into
+              the EU &mdash; about <strong>12.6 million a day</strong>, 91% from China &mdash;
+              reaching <strong>~5.9 billion</strong> in 2025. That scale is exactly why the EU
+              moved to end the &euro;150 duty-free threshold: a <strong>&euro;3-per-item</strong>
+              customs duty took effect <strong>1 July 2026</strong>, closing the loophole.
+            </p>
           </div>
 
           <!-- Column 2: sources + legend -->
           <div class="modal-col">
             <h3>DATA SOURCES</h3>
             <ul>
-              <li><strong>European Commission</strong> &mdash; Customs Data, 2024</li>
-              <li><strong>Cargo Facts Consulting</strong> &mdash; Global Air Freight Analysis</li>
-              <li><strong>Reuters &amp; Financial Times</strong> &mdash; Market Reports</li>
-              <li><strong>IATA</strong> &mdash; Air Cargo Market Analysis</li>
+              <li><strong>European Commission (DG TAXUD)</strong> &mdash; official low-value (&lt;&euro;150) EU import counts, 1.39B (2022) &rarr; 5.88B (2025)</li>
+              <li><strong>European Commission COM(2025)37</strong> &mdash; 91% of 2024 low-value imports from China; 4.17B China-origin (1.9B in 2023)</li>
+              <li><strong>European Parliament</strong> &mdash; low-value import figures; July 2025 report backing the end of the &euro;150 de minimis</li>
+              <li><strong>Council of the EU (Consilium)</strong> &mdash; &euro;3-per-item customs duty agreed Dec 2025, effective 1 July 2026</li>
+              <li><strong>Cargo Facts Consulting</strong> (via Reuters) &mdash; Shein vs Temu air-freight tonnage split</li>
+              <li><strong>Cross-Border Commerce Europe</strong> &mdash; Shein&rsquo;s dominant European position in the pre-Temu era</li>
             </ul>
 
             <h3>VISUALIZATION KEY</h3>
@@ -760,7 +769,12 @@ strong { text-decoration: underline; }
         </div>
 
         <div class="modal-foot">
-          Note: 2024&ndash;2025 figures include projections based on Q1&ndash;Q3 market trends.<br>
+          Note: as of mid-2026, the 2022&ndash;2025 annual volumes are official European
+          Commission (DG TAXUD) counts of low-value (&lt;&euro;150) EU imports; 2020 and 2021
+          pre-date systematic customs counting (before the 1 July 2021 IOSS reform) and are
+          estimates. 2025 (~5.9B) is a completed-year actual, not a projection. The Shein/Temu
+          split is a modeled estimate every year &mdash; no source publishes an exact
+          platform-level parcel breakdown.<br>
           Font: &ldquo;WebPlus IBM VGA 8x16&rdquo; &mdash; The Ultimate Oldschool PC Font Pack by VileR (int10h.org), CC BY-SA 4.0
         </div>
       </div>
@@ -814,26 +828,34 @@ const HUBS = {
 };
 
 // --- Yearly data --------------------------------------------------------------
-// Per-year merge:
-//   volume/rawVolume/dailyAvg/rawDaily/growth/desc/sources/activeRoutes ← proto 1
-//   sheinShare/temuShare (was sheinRatio/temuRatio) + event               ← proto 2
-//   volumeMultiplier ← proto 2 (provenance only — the scene derives pillar
-//                      height from rawVolume, not from this field)
-// Note: proto 2's own daily volumeText (2.0M…14.0M) roughly cross-checks
-// proto 1's dailyAvg series; proto 1 values are authoritative here per spec.
+// 2026-07 full refresh: the whole 2020–2025 series was re-sourced from primary
+// EU data (a research + adversarial-verify workflow). Volume = TOTAL EU low-value
+// (<€150) parcel imports — the European Commission / DG TAXUD official series —
+// of which ~91% (2024) rising to ~90%+ (2025) is China→EU. Anchored to primary
+// EC / European Parliament / Consilium figures: 1.4B (2022), 2.3B (2023),
+// 4.6B (2024), ~5.9B (2025, completed-year actual; precise DG TAXUD 5.88B).
+// 2020 (~0.8B) and 2021 (~1.0B) pre-date systematic customs counting (the
+// H7/IOSS regime began 1 July 2021) and are estimates (isEstimate:true).
+// dailyAvg = rawVolume / 365 (millions/day). sheinShare/temuShare = the
+// Shein+Temu two-player split of the flow (normalized to 1.0); no source
+// publishes a parcel-level breakdown, so shares are a modeled estimate every
+// year (triangulated from DSA monthly-active-user disclosures + Cargo Facts
+// air-freight tonnage). The old proto `volumeMultiplier` field was dropped
+// (unused — pillar height derives from rawVolume). Route-level (airport-pair)
+// intensities are unchanged and illustrative.
 const YEARS = {
   2020: {
-    volume: "1.2 Billion",
-    rawVolume: 1.2,
-    dailyAvg: "~3.3M",
-    rawDaily: 3.3,
-    growth: "+15%",
-    sheinShare: 0.95,
+    volume: "~0.8 Billion",
+    rawVolume: 0.8,
+    dailyAvg: "~2.2M",
+    rawDaily: 2.2,
+    growth: "—",
+    sheinShare: 1.0,
     temuShare: 0.0,
-    volumeMultiplier: 1.0,
-    desc: "Pandemic-driven e-commerce boom. Early surge in direct-mail small parcels from Guangdong to Europe via air freight.",
-    event: "Pandemic surge. Shein dominates direct export channels.",
-    sources: "Eurostat; Cross-Border Commerce Europe",
+    isEstimate: true,
+    desc: "COVID-19 lockdowns supercharge direct-mail parcels from Guangdong to Europe. Pre-dates any formal EU customs count (an estimate); the China-direct flow is essentially all Shein.",
+    event: "Pandemic e-commerce surge; EU delays its VAT reform to 1 July 2021.",
+    sources: "European Commission (pre-reform baseline); Cross-Border Commerce Europe",
     activeRoutes: [
       { src: "HKG", dst: "LHR", intensity: 0.6 },
       { src: "HKG", dst: "FRA", intensity: 0.5 },
@@ -842,17 +864,17 @@ const YEARS = {
     ],
   },
   2021: {
-    volume: "1.8 Billion",
-    rawVolume: 1.8,
-    dailyAvg: "~4.9M",
-    rawDaily: 4.9,
-    growth: "+50%",
-    sheinShare: 0.98,
+    volume: "~1.0 Billion",
+    rawVolume: 1.0,
+    dailyAvg: "~2.7M",
+    rawDaily: 2.7,
+    growth: "+25%",
+    sheinShare: 1.0,
     temuShare: 0.0,
-    volumeMultiplier: 1.4,
-    desc: "EU VAT reform (IOSS) streamlines customs for parcels <€150. Shein expands aggressively in Western Europe.",
-    event: "EU IOSS tax rules implemented. Cross-border volume grows.",
-    sources: "European Commission (DG TAXUD); Cargo Facts",
+    isEstimate: true,
+    desc: "The 1 July VAT package ends the ≤€22 exemption and launches IOSS, yet the €150 duty de minimis survives — China-direct parcels stay duty-free. Tracks the EC's ~1B/year pre-reform baseline (estimate).",
+    event: "1 July: EU ends the ≤€22 VAT exemption, launches IOSS; €150 duty de minimis stays.",
+    sources: "European Commission (DG TAXUD); Cross-Border Commerce Europe",
     activeRoutes: [
       { src: "HKG", dst: "LHR", intensity: 0.7 },
       { src: "CAN", dst: "LGG", intensity: 0.8 },
@@ -862,17 +884,17 @@ const YEARS = {
     ],
   },
   2022: {
-    volume: "2.5 Billion",
-    rawVolume: 2.5,
-    dailyAvg: "~6.8M",
-    rawDaily: 6.8,
-    growth: "+38%",
-    sheinShare: 0.95,
-    temuShare: 0.05,
-    volumeMultiplier: 1.8,
-    desc: "Temu enters the market. The 'De Minimis' loophole becomes the primary channel for ultra-fast fashion logistics chains.",
-    event: "Shein valuation peaks. Temu launches in US (minimal EU impact).",
-    sources: "Transport Intelligence (Ti); China Customs",
+    volume: "1.4 Billion",
+    rawVolume: 1.4,
+    dailyAvg: "~3.8M",
+    rawDaily: 3.8,
+    growth: "+40%",
+    sheinShare: 0.99,
+    temuShare: 0.01,
+    isEstimate: false,
+    desc: "First year of the official EU low-value series: 1.4B items under €150, overwhelmingly Shein. Temu had launched only in the US (September) and not yet reached Europe.",
+    event: "Temu launches in the US (Sept); Shein valuation peaks near $100B.",
+    sources: "European Commission (DG TAXUD); European Parliament",
     activeRoutes: [
       { src: "CAN", dst: "LGG", intensity: 0.9 },
       { src: "SZX", dst: "AMS", intensity: 0.7 },
@@ -882,17 +904,17 @@ const YEARS = {
     ],
   },
   2023: {
-    volume: "3.8 Billion",
-    rawVolume: 3.8,
-    dailyAvg: "~10.4M",
-    rawDaily: 10.4,
-    growth: "+52%",
-    sheinShare: 0.65,
-    temuShare: 0.35,
-    volumeMultiplier: 3.0,
-    desc: "Explosive growth. Shein & Temu reportedly occupy ~30% of total long-haul air cargo capacity out of South China.",
-    event: "Temu enters EU market. Aggressive expansion begins.",
-    sources: "Reuters Analysis; IATA Air Cargo Market Analysis",
+    volume: "2.3 Billion",
+    rawVolume: 2.3,
+    dailyAvg: "~6.3M",
+    rawDaily: 6.3,
+    growth: "+64%",
+    sheinShare: 0.68,
+    temuShare: 0.32,
+    isEstimate: false,
+    desc: "Low-value imports climb to 2.3B (1.9B China-origin, COM(2025)37). Temu ramps from zero across six EU markets, splitting the China flow ~two-thirds Shein, one-third Temu.",
+    event: "Temu enters the EU (late April); Commission proposes scrapping the €150 threshold (17 May).",
+    sources: "European Commission COM(2025)37; European Parliament; Cargo Facts Consulting",
     activeRoutes: [
       { src: "CAN", dst: "LGG", intensity: 1.0 },
       { src: "SZX", dst: "LHR", intensity: 0.9 },
@@ -903,17 +925,17 @@ const YEARS = {
     ],
   },
   2024: {
-    volume: "4.5 Billion",
-    rawVolume: 4.5,
-    dailyAvg: "~12.3M",
-    rawDaily: 12.3,
-    growth: "+18%",
-    sheinShare: 0.45,
-    temuShare: 0.50,
-    volumeMultiplier: 6.2,
-    desc: "Supply chain diversification. New logistics hubs in Eastern Europe (Budapest/Warsaw) rise to mitigate customs bottlenecks.",
-    event: "4.6B parcels flood EU. Capacity crunch at Liege/Heathrow.",
-    sources: "EU-China Chamber of Commerce; Logistics Reports",
+    volume: "4.6 Billion",
+    rawVolume: 4.6,
+    dailyAvg: "~12.6M",
+    rawDaily: 12.6,
+    growth: "+100%",
+    sheinShare: 0.53,
+    temuShare: 0.47,
+    isEstimate: false,
+    desc: "Volume doubles to 4.6B (~12.6M/day), 91% China-origin (4.17B). Shein and Temu draw nearly even in the direct flow — Shein still narrowly ahead on users (108M vs 92M) and air tonnage (5,000 vs 4,000 t/day).",
+    event: "4.6B parcels, 91% from China — the surge that made ending de minimis unavoidable.",
+    sources: "European Commission COM(2025)37; European Parliament; Cargo Facts Consulting",
     activeRoutes: [
       { src: "CAN", dst: "LGG", intensity: 1.0 },
       { src: "SZX", dst: "AMS", intensity: 0.9 },
@@ -924,17 +946,17 @@ const YEARS = {
     ],
   },
   2025: {
-    volume: "5.2 Billion", // projection (proto 1)
-    rawVolume: 5.2,
-    dailyAvg: "~14.2M",
-    rawDaily: 14.2,
-    growth: "+15%",
-    sheinShare: 0.42,
-    temuShare: 0.53,
-    volumeMultiplier: 7.0,
-    desc: "Projected peak. Massive automated logistics network fully operational. Potential EU regulatory shifts on duty-free thresholds.",
-    event: "Regulatory scrutiny on 'de minimis'. Growth stabilizes.",
-    sources: "Forecast by McKinsey & Company; Industry Projections",
+    volume: "~5.9 Billion",
+    rawVolume: 5.9,
+    dailyAvg: "~16.2M",
+    rawDaily: 16.2,
+    growth: "+28%",
+    sheinShare: 0.54,
+    temuShare: 0.46,
+    isEstimate: false,
+    desc: "The completed-year total reaches ~5.9B (~16.2M/day), over 90% China-origin. Temu's pivot to local EU warehouses trims its direct-parcel share, leaving Shein a slim lead as the de-minimis era closes.",
+    event: "Council agrees a €3-per-item customs duty (12 Dec 2025), effective 1 July 2026.",
+    sources: "European Commission (DG TAXUD); Council of the EU (Consilium)",
     activeRoutes: [
       { src: "CAN", dst: "LGG", intensity: 1.0 },
       { src: "SZX", dst: "AMS", intensity: 1.0 },
@@ -2080,7 +2102,7 @@ function tuiMeterLine(pct) {
   return "[" + track + "] " + pct + "% SATURATION";
 }
 
-// Static scale row under the meter: 0 / 7.5M (true midpoint) / 15M.
+// Static scale row under the meter: 0 / 9M (true midpoint) / 18M.
 function tuiMeterScale() {
   const arr = new Array(TUI_METER_W + 2).fill(" ");
   const put = (s, at) => {
@@ -2089,8 +2111,8 @@ function tuiMeterScale() {
     }
   };
   put("0", 1);
-  put("7.5M", 1 + TUI_METER_W / 2 - 2);
-  put("15M", TUI_METER_W - 1);
+  put("9M", 1 + TUI_METER_W / 2 - 1);
+  put("18M", TUI_METER_W - 1);
   return arr.join("") + " PKG";
 }
 
@@ -2130,7 +2152,7 @@ function initUI({ sceneApi, hubs, years, yearList, initialYear }) {
     modalClose: $("modal-close"),
   };
 
-  const DAILY_MAX = 15; // saturation meter full scale, millions of parcels/day
+  const DAILY_MAX = 18; // saturation meter full scale, millions of parcels/day
   const PLAY_STEP_MS = 2000; // autoplay: 2s per year
   const VIEW_SWITCH_COOLDOWN_MS = 900; // let the ~800ms morph settle
 
@@ -2191,7 +2213,7 @@ function initUI({ sceneApi, hubs, years, yearList, initialYear }) {
 
     // annual pane
     els.statVolume.textContent = d.volume;
-    els.statGrowth.textContent = d.growth + " YoY";
+    els.statGrowth.textContent = /\d/.test(d.growth) ? d.growth + " YoY" : d.growth;
 
     // daily pane — character meter
     els.statDaily.textContent = d.dailyAvg;
@@ -2206,7 +2228,7 @@ function initUI({ sceneApi, hubs, years, yearList, initialYear }) {
     els.yearDesc.textContent = d.desc;
     els.yearEvent.textContent = d.event;
     els.routeCount.textContent = "ACTIVE ROUTES: " + d.activeRoutes.length;
-    els.yearSources.textContent = d.sources;
+    els.yearSources.textContent = (d.isEstimate ? "EST · " : "") + d.sources;
 
     // highlight current year in chart + timeline
     for (const [yr, col] of volCols) col.classList.toggle("active", yr === y);
