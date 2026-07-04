@@ -4,6 +4,16 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>CHINA-EU FLOW · ASCII</title>
+<!-- ── PWA: manifest, icons, iOS home-screen & theme meta (all RELATIVE) ── -->
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="icons/favicon-16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="icons/apple-touch-icon.png">
+<meta name="theme-color" content="#000000">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="CN-EU FLOW">
 <style>
 /* ════════════════════════════════════════════════════════════════════
    CHINA-EU FLOW ASCII · ui.css
@@ -2389,6 +2399,46 @@ const enterPanel = document.getElementById("enter-panel");
 if (enterPanel) {
   enterPanel.addEventListener("click", () => enterPanel.remove(), { once: true });
 }
+</script>
+<!-- ── PWA: service-worker registration (classic, on window load) ──────────
+     Kept separate from the module boot and the #globe-host CDN fail-timer so
+     it never competes with first paint. Relative "sw.js" → scope = the app
+     directory (the GitHub Pages subpath). No absolute paths. -->
+<script>
+(function () {
+  if (!("serviceWorker" in navigator)) return;
+  window.addEventListener("load", function () {
+    navigator.serviceWorker.register("sw.js").catch(function (err) {
+      // Registration failure must never break the app; log and move on.
+      console.warn("[pwa] service worker registration failed:", err);
+    });
+  });
+})();
+</script>
+<!-- ── PWA: keep <meta name="theme-color"> in sync with the year palette ───
+     The viz drifts --paper across years; mirror it onto theme-color so the
+     PWA status-bar chrome tracks the room tone. Fully defensive: no-ops if the
+     meta tag or CSS var is unavailable. Decoupled from the module boot (own
+     IIFE, try/catch around getComputedStyle) so a viz error can never leave it
+     throwing. Splash still uses the manifest #000000 background_color. -->
+<script>
+(function () {
+  var meta = document.querySelector('meta[name="theme-color"]');
+  if (!meta) return;
+  var root = document.documentElement;
+  var last = "";
+  function sync() {
+    try {
+      var paper = getComputedStyle(root).getPropertyValue("--paper").trim();
+      if (paper && paper !== last) {
+        last = paper;
+        meta.setAttribute("content", paper);
+      }
+    } catch (e) { /* ignore */ }
+  }
+  sync();
+  setInterval(sync, 1000);
+})();
 </script>
 </body>
 </html>

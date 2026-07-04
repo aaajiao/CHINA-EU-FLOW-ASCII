@@ -28,14 +28,27 @@ language follows its sibling piece [1bit / 嵌合体废墟](https://github.com/a
 
 ## Run
 
-Single self-contained `index.html` — land-mask data and font are inlined; the
-only external request is the glyphcss ES-module import from esm.sh. ES modules
-need an HTTP origin, so serve the folder with any static server:
+`index.html` has the land-mask data and font inlined; the only external request
+is the glyphcss ES-module import from esm.sh. ES modules (and the service
+worker) need an HTTP origin, so serve the folder with any static server:
 
 ```sh
 python3 -m http.server 8000
 # open http://localhost:8000/
 ```
+
+## Install (PWA)
+
+It's an installable, offline-capable PWA. Open the live site in a supporting
+browser and choose **Install app** / **Add to Home Screen**. After one online
+load, a service worker serves it fully offline — the app shell **and** the
+glyphcss module (with its transitive esm.sh imports) are cached, so the ASCII
+Earth still boots with no network. The installed window's status-bar colour
+tracks the year palette as it drifts. Home-screen icon by aaajiao.
+
+Sidecar files: `manifest.webmanifest`, `sw.js`, and `icons/` (full-bleed `any`
++ padded `maskable` + apple-touch + favicons). All paths are relative so it
+works from the GitHub Pages project subpath.
 
 ## Data
 

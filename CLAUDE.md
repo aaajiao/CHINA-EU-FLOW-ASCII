@@ -74,9 +74,22 @@
 - **验证陷阱**:Chrome 窗口被遮挡时 `document.hidden=true`,rAF 完全停摆——色调漂移 lerp 看似"不工作"。paletteEngine 已加 hidden 时直接 snap 的守卫;用无头/遮挡窗口验证动画前先查 `document.hidden`。
 - 左侧数据面板在矮视口下靠 `.tui-body` 的 overflow-y:auto(墨色块滚动条)防止内容穿透字符框线(flex 列 + max-height 组合的固有行为)。
 
+## PWA 化(2026-07-04,workflow 设计+对抗评审后落地)
+
+整个项目已 PWA 化:可安装、离线可用。图标来自作者提供的 ChatGPT 生成图(1254px 方图,黑底霓虹 HUD 像素地球:红=中国/@/弧线=Shein 专色,青=网格,绿=角标),原图存 `icons/icon-master-1254.png`。
+
+- **新增 sidecar 文件**:`manifest.webmanifest`、`sw.js`(根目录)、`icons/`(9 个:full-bleed `any` 192/512/1024 + padded `maskable` 192/512 + apple-touch 180 + favicon 32/16 + master 1254)。
+- **图标生成**:`sips` 从 master 缩放;maskable = 先缩到 80%(410/154px)再 `sips -p 512 512 --padColor 000000` 居中补黑边,避免 launcher 圆角/圆形裁切吃掉 HUD 边框与角标(源图边缘有 `[+]` 角标)。
+- **路径全部相对(关键红线)**:GitHub Pages 是项目子路径 `/CHINA-EU-FLOW-ASCII/`。manifest href、icon src、`start_url:"."`、`scope:"./"`、`id:"./"`、`register("sw.js")`、以及 SW 内 precache(`new URL(path, self.location)`)全用相对路径。**任何绝对 `/…` 都会在子路径下 404**——别改成绝对路径。
+- **离线策略(sw.js)**:两个 cache——app-shell(同源:导航 network-first+缓存兜底,静态资源 cache-first)+ runtime(跨源 `esm.sh` cache-first)。esm.sh 带 CORS,响应非 opaque,可正常缓存。**关键修复(评审抓到的真 bug)**:每个 `cache.put` 都用 `event.waitUntil()` 绑定 fetch 事件生命周期,否则 SW 在 `respondWith` 结算瞬间被终止,esm.sh 模块图偶发写不进缓存 → 离线时 glyphcss 起不来、假性通过。`VERSION` 常量 bump 可失效 shell 预缓存。
+- **首屏不完全缓存是预期行为**:SW 靠 activate 的 `clients.claim()` 接管,首次加载时 esm.sh 子导入在接管前已发出、未被拦截;**再加载一次**(SW 从头控制)才会把 4 个 esm.sh 传递依赖(`glyphcss` stub → `@glyphcss/core` 解析 → 两个 pinned `.mjs`)全部进 runtime cache。已实测:第二次 load 后杀本地服务器再 reload,ASCII 地球仍从缓存渲染、无 FAILED 横幅、控制台零页面报错。
+- **boot 安全**:SW 注册是独立 classic `<script>`,仅在 window `load` 触发,不碰 `window.__cdnFailTimer` / module 的 `clearTimeout` / 首屏渲染。
+- **theme-color 跟随年份漂移**:一个防御性 IIFE 每秒把 `<meta name="theme-color">` 同步为当前 `--paper`;splash 仍用 manifest 的 `#000000` background_color(与图标黑底无缝)。name/short_name = `CHINA-EU FLOW ASCII` / `CN-EU FLOW`。
+- 集成方式:用一次性 Node 脚本从 workflow 输出 JSON 精确抽取 manifest/sw/head/registration 并写入(带**幂等守卫**;曾因重复插入过一次全部 PWA 块,已 `git checkout` 回滚+加守卫修复)。手动改 PWA 时注意别重复注入:`grep -c 'rel="manifest"' index.html` 应为 1。
+
 ## 约束
 
-- 产物保持单文件 HTML(除 glyphcss CDN import 外自包含);陆地网格数据烘焙后内联进 HTML,不依赖运行时抓取 world-atlas。
+- 产物核心仍是自包含的 `index.html`(land grid + 字体内联,运行时只抓 glyphcss CDN);**PWA 化后新增 `manifest.webmanifest` / `sw.js` / `icons/` 三类 sidecar——这是"单文件"约束的既定例外**(PWA 本质需要独立的 service worker 与 manifest;icon 也不宜内联)。可视化逻辑本身仍单文件。陆地网格数据烘焙后内联进 HTML,不依赖运行时抓取 world-atlas。
 - 用 ES module(`<script type="module">`),需要通过本地静态服务器打开(如 `python3 -m http.server`),file:// 下 CDN ESM import 可能受限。
 - 无 lint/测试等自动化检查;验证方式 = 浏览器打开实际操作(可用 Claude in Chrome 截图验证)。
 - 数据口径以 data.js 的 YEARS 数值为准(2026-07-04 全面刷新后,详见上方「数据全面刷新」节),保留来源注释(EC/DG TAXUD、COM(2025)37、European Parliament、Consilium、Cargo Facts、Cross-Border Commerce Europe),不要编造数据,也不要回退到 proto 旧值。
