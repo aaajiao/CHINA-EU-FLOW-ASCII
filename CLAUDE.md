@@ -21,6 +21,9 @@
 - **终局事件**:欧盟理事会 2025-12-12 通过 €3/件关税,2026-07-01 生效——de minimis 时代结束,已写入 2025 event 与 INFO modal。
 - 航线级(机场对)强度保持不变(示意性,无一手逐航线数据)。proto 的 `volumeMultiplier` 字段已删除(未被引用,柱高由 rawVolume 推导)。
 - 来源族:EC/DG TAXUD、COM(2025)37、European Parliament、Council of the EU (Consilium)、Cargo Facts Consulting、Cross-Border Commerce Europe。footer/INFO modal 同步更新。
+- **文案/时态**:今天(2026-07-04)已过 2026-07-01,de minimis 时代已闭幕——全站文案改过去时(INFO intro:"parcels below €150 *entered* the EU free of duty";"duty *took effect* 1 July 2026, closing the loophole";README 的 "ended de minimis" 同步)。旧 "2024–2025 figures include projections" 脚注已删,换成"哪些年官方/哪些年估算"的说明。以后再改文案,先核对时态与最新数据逻辑一致(作者明确要求全站文案都要符合新数据逻辑)。
+- **UI 渲染小改**:growth 为 "—"(基准年 2020)时不再追加 " YoY"(`/\d/.test(d.growth)` 守卫);估算年份(`isEstimate:true`)的 SRC 行前缀 "EST ·"。
+- **两处口径判断(可回退)**:2025 日均取 **16.2M**(=年量/365,与本作 dailyAvg 口径自洽),而非新闻常引的 16.1M(来自精确 5.88B);2025 中国占比写 **"over 90%"**,未采用单一二手源的 93%(与 2024 已确认的 91% 保持一致)。
 
 ## glyphcss 关键事实(已验证)
 
@@ -76,4 +79,4 @@
 - 产物保持单文件 HTML(除 glyphcss CDN import 外自包含);陆地网格数据烘焙后内联进 HTML,不依赖运行时抓取 world-atlas。
 - 用 ES module(`<script type="module">`),需要通过本地静态服务器打开(如 `python3 -m http.server`),file:// 下 CDN ESM import 可能受限。
 - 无 lint/测试等自动化检查;验证方式 = 浏览器打开实际操作(可用 Claude in Chrome 截图验证)。
-- 数据口径以已合并进 data.js 的数值为准,保留来源注释(Eurostat、European Commission、IATA 等),不要编造数据。
+- 数据口径以 data.js 的 YEARS 数值为准(2026-07-04 全面刷新后,详见上方「数据全面刷新」节),保留来源注释(EC/DG TAXUD、COM(2025)37、European Parliament、Consilium、Cargo Facts、Cross-Border Commerce Europe),不要编造数据,也不要回退到 proto 旧值。
