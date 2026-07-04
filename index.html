@@ -1624,26 +1624,43 @@ function createLogisticsScene(host, { landGrid, hubs, years }) {
     const placed = [];
     for (const rec of labelRecs) {
       const [col, row, depth] = camera.project(labelAnchor(rec.hub), cols, rows, cellAspect);
-      let show = false;
+      if (!Number.isFinite(col)) { rec.el.style.opacity = "0"; continue; }
+      let px = col * cellW, py = row * cellH;
       // depth > 0 = front-facing in glyphcss 0.0.9 (verified empirically: the
       // world-example's `depth < 0` convention is inverted in this release).
-      if (depth > 0 && Number.isFinite(col)) {
-        const px = col * cellW, py = row * cellH;
-        if (px >= 0 && px <= rect.width && py >= 0 && py <= rect.height) {
-          if (!rec.w) rec.w = rec.el.getBoundingClientRect().width || (rec.hub.name.length + 1) * 8 + 8;
-          const w = rec.w, h = 16;
-          const r = { x: px - w / 2, y: py - h / 2, w, h };
-          const overlaps = placed.some((p) =>
-            !(r.x + r.w < p.x || r.x > p.x + p.w || r.y + r.h < p.y || r.y > p.y + p.h));
-          if (!overlaps) {
-            placed.push(r);
-            show = true;
-            rec.el.style.left = `${px}px`;
-            rec.el.style.top = `${py}px`;
-          }
-        }
+      // Ports must stay readable at every camera angle, so back-side hubs are
+      // NOT hidden: the orthographic projection of a far-side point still has
+      // the correct screen azimuth, so we pin its label just outside the
+      // globe's silhouette rim in that direction, dimmed to a ghost. Dragging
+      // toward a ghost brings its port around — the label doubles as a compass.
+      const front = depth > 0;
+      if (!front && view === "globe") {
+        const [cc, cr] = camera.project([0, 0, 0], cols, rows, cellAspect);
+        const cx = cc * cellW, cy = cr * cellH;
+        const dx = px - cx, dy = py - cy;
+        const len = Math.hypot(dx, dy) || 1;
+        const rimR = pixelsPerUnit() * SCN_LABEL_RADIUS + 14;
+        px = cx + (dx / len) * rimR;
+        py = cy + (dy / len) * rimR;
       }
-      rec.el.style.opacity = show ? "0.92" : "0";
+      // Clamp into the viewport (flat view zoomed in, rim pins near edges).
+      if (!rec.w) rec.w = rec.el.getBoundingClientRect().width || (rec.hub.name.length + 1) * 8 + 8;
+      const w = rec.w, h = 16;
+      px = clamp(px, w / 2 + 4, rect.width - w / 2 - 4);
+      py = clamp(py, h / 2 + 4, rect.height - h / 2 - 4);
+      // Collision: never hide a port — resolve by stacking vertically
+      // (heavier hubs were placed first, so they keep their spot).
+      let fx = px, fy = py;
+      for (const dyTry of [0, 18, -18, 36, -36, 54, -54, 72, -72]) {
+        const y = clamp(py + dyTry, h / 2 + 4, rect.height - h / 2 - 4);
+        const r = { x: px - w / 2, y: y - h / 2, w, h };
+        const overlaps = placed.some((p) =>
+          !(r.x + r.w < p.x || r.x > p.x + p.w || r.y + r.h < p.y || r.y > p.y + p.h));
+        if (!overlaps || dyTry === -72) { fy = y; placed.push(r); break; }
+      }
+      rec.el.style.left = `${fx}px`;
+      rec.el.style.top = `${fy}px`;
+      rec.el.style.opacity = front ? "0.92" : "0.4";
     }
     updateCargoOverlay();
   }
