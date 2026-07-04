@@ -992,11 +992,18 @@ const SCN_ARC_COLOR_HI  = "#aaaaaa";   // intensity 1.0 → '*' weight (lighter 
 const SCN_ARC_COLOR_LO  = "#909090";   // intensity 0.4 → '+' weight
 
 // Particles
-const SCN_PARTICLE_SIZE     = 0.018;   // octahedron half-extent
+const SCN_PARTICLE_SIZE     = 0.026;   // octahedron half-extent
 const SCN_PARTICLE_MAX      = 150;
 const SCN_PARTICLE_TICK_MS  = 66;      // ~15 fps
 const SCN_PARTICLE_SPEED    = 0.28;    // arc-radians per second along the route
 const SCN_PARTICLE_PARK     = [0, 0, -999]; // far off-grid → clipped, invisible
+// Cargo visibility (monochrome emphasis is temporal + footprint, not hue):
+// each parcel pulses its glyph footprint and drags a fading comet tail.
+const SCN_TRAIL_COUNT       = 3;
+const SCN_TRAIL_DT          = 0.028;   // route-t spacing between tail ghosts
+const SCN_TRAIL_SCALES      = [0.72, 0.5, 0.34];
+const SCN_PULSE_HZ          = 2.2;     // footprint pulse frequency
+const SCN_PULSE_AMP         = 0.4;     // scale swing: 1±0.4
 const SCN_SHEIN_COLOR = "#ffffff";     // max luma → heaviest glyph (@)
 const SCN_TEMU_COLOR  = "#989898";     // mid luma → '+'/'*' glyph (legend: * TEMU), lighter than land
 
@@ -1011,12 +1018,14 @@ const SCN_HUB_COLORS = { origin: "#ffffff", hub: "#ffffff", dest: "#ffffff" };
 const SCN_LABEL_RADIUS    = 1.06;      // globe: anchor at radius × 1.06
 const SCN_LABEL_LIFT_FLAT = 0.06;      // flat: anchor lifted off the map plane
 // TUI: labels use the same VGA cell as the scene glyphs; show/hide hard-cuts.
+// Reverse-video chips (DOS status-bar emphasis) — the strongest highlight the
+// two-color system has, so port names read over any terrain density.
 const SCN_LABEL_CSS =
   "position:absolute;transform:translate(-50%,-50%);white-space:pre;" +
   "font-size:16px;line-height:1;text-transform:uppercase;" +
   "font-family:'IBM VGA','Courier New',monospace;" +
-  "color:var(--ink);background:var(--paper);padding:0 4px;" +
-  "opacity:0;pointer-events:none;z-index:5;";
+  "color:var(--paper);background:var(--ink);padding:0 8px;" +
+  "opacity:0;pointer-events:none;z-index:6;";
 
 // ─── Coordinate convention (matches the official world example exactly) ─────
 // Z-up, longitude negated in Y.
@@ -1394,20 +1403,26 @@ function createLogisticsScene(host, { landGrid, hubs, years }) {
     return polys;
   }
 
-  // Two color-keyed pools of pooled mesh handles; a handle is never disposed
-  // once created, only parked far off-grid (clipped → invisible, zero cost).
+  // Two color-keyed pools of pooled mesh groups (core + comet-tail ghosts);
+  // handles are never disposed once created, only parked far off-grid
+  // (clipped → invisible, zero cost).
   const pools = { shein: [], temu: [] };
   const poolColors = { shein: SCN_SHEIN_COLOR, temu: SCN_TEMU_COLOR };
-  let particles = [];       // active: { handle, route, t, speed }
+  let particles = [];       // active: { grp, route, t, speed, phase }
   let routesGeom = [];      // per active route: { samples, omega, intensity }
 
   function parkHandle(h) {
     h.setTransform({ position: SCN_PARTICLE_PARK.slice(), scale: 0.001 });
   }
 
+  function parkGroup(g) {
+    parkHandle(g.core);
+    for (const h of g.trails) parkHandle(h);
+  }
+
   function parkAllParticles() {
     particles = [];
-    for (const key of Object.keys(pools)) for (const h of pools[key]) parkHandle(h);
+    for (const key of Object.keys(pools)) for (const g of pools[key]) parkGroup(g);
   }
 
   function pickRoute() {
@@ -1449,21 +1464,41 @@ function createLogisticsScene(host, { landGrid, hubs, years }) {
     for (const key of Object.keys(pools)) {
       const pool = pools[key];
       while (pool.length < counts[key]) {
-        pool.push(scene.add(octaPolys(SCN_PARTICLE_SIZE, poolColors[key]), {
+        const mk = () => scene.add(octaPolys(SCN_PARTICLE_SIZE, poolColors[key]), {
           position: SCN_PARTICLE_PARK.slice(),
           scale: 0.001,
-        }));
+        });
+        pool.push({ core: mk(), trails: Array.from({ length: SCN_TRAIL_COUNT }, mk) });
       }
       for (let i = 0; i < pool.length; i++) {
         if (i < counts[key]) {
           const route = pickRoute();
-          const p = { handle: pool[i], route, t: Math.random(), speed: routeSpeed(route) };
-          pool[i].setTransform({ position: sampleRoute(route, p.t), scale: 1 });
+          const p = {
+            grp: pool[i], route, t: Math.random(),
+            speed: routeSpeed(route), phase: Math.random() * Math.PI * 2,
+          };
+          placeParticle(p, performance.now());
           particles.push(p);
         } else {
-          parkHandle(pool[i]);
+          parkGroup(pool[i]);
         }
       }
+    }
+  }
+
+  // Core pulses its glyph footprint; tail ghosts trail behind on the route at
+  // fixed t-spacing with shrinking scale (parked while still short of launch).
+  function placeParticle(p, nowMs) {
+    const pulse = 1 + SCN_PULSE_AMP *
+      Math.sin((nowMs / 1000) * SCN_PULSE_HZ * Math.PI * 2 + p.phase);
+    p.grp.core.setTransform({ position: sampleRoute(p.route, p.t), scale: pulse });
+    for (let k = 0; k < p.grp.trails.length; k++) {
+      const tt = p.t - SCN_TRAIL_DT * (k + 1);
+      if (tt <= 0) parkHandle(p.grp.trails[k]);
+      else p.grp.trails[k].setTransform({
+        position: sampleRoute(p.route, tt),
+        scale: SCN_TRAIL_SCALES[k],
+      });
     }
   }
 
@@ -1483,7 +1518,7 @@ function createLogisticsScene(host, { landGrid, hubs, years }) {
         const route = pickRoute();
         if (route) { p.route = route; p.speed = routeSpeed(route); }
       }
-      p.handle.setTransform({ position: sampleRoute(p.route, p.t), scale: 1 });
+      placeParticle(p, now);
     }
     scene.rerender();
   }, SCN_PARTICLE_TICK_MS);
@@ -1802,7 +1837,10 @@ function createLogisticsScene(host, { landGrid, hubs, years }) {
       for (const rec of labelRecs) rec.el.remove();
       if (arcsHandle) arcsHandle.dispose();
       if (hubsHandle) hubsHandle.dispose();
-      for (const key of Object.keys(pools)) for (const h of pools[key]) h.dispose();
+      for (const key of Object.keys(pools)) for (const g of pools[key]) {
+        g.core.dispose();
+        for (const h of g.trails) h.dispose();
+      }
       if (worldHandle) worldHandle.dispose();
       scene.destroy();
     },
