@@ -1,0 +1,2255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CHINA-EU FLOW · ASCII</title>
+<style>
+/* ════════════════════════════════════════════════════════════════════
+   CHINA-EU FLOW ASCII · ui.css
+   Full TUI: one embedded VGA bitmap font for scene AND chrome, character
+   box-drawing frames (single-line panels, double-line entry/modal),
+   character widgets, reverse-video states, hard-cut transitions.
+   1-bit ink/paper duotone (Symbiosis · 嵌合体废墟): two colors on screen
+   at any time — var(--ink) on var(--paper). Scanline overlay is the only
+   textured exception (game-native).
+   --paper/--ink are retargeted per year by paletteEngine (rAF lerp)
+   and swapped by [ INVERT ] / key "i".
+   Font: "WebPlus IBM VGA 8x16" — The Ultimate Oldschool PC Font Pack by
+   VileR (int10h.org), CC BY-SA 4.0 (credited in the INFO modal footer).
+   ════════════════════════════════════════════════════════════════════ */
+
+@font-face {
+  font-family: "IBM VGA";
+  src: url(data:font/woff;base64,d09GRgABAAAAAFg4AA4AAAABE/wAAgACAAAAAAAAAAAAAAAAAAAAAAAAAABGRlRNAABW8AAAABwAAAAciLRMbUdERUYAAFbMAAAAJAAAACYAJwM0T1MvMgAAAbAAAABXAAAAYHe/jJFjbWFwAAAC4AAABA4AAAbOMz4QfWdhc3AAAFbEAAAACAAAAAj//wADZ2x5ZgAADPAAADsNAADgbM1zI41oZWFkAAABRAAAADUAAAA2El+O0mhoZWEAAAF8AAAAHAAAACQH0gGVaG10eAAAAggAAADWAAAGJDzwMZxsb2NhAAAG8AAABf0AAAYe9Xa9Ym1heHAAAAGYAAAAFgAAACADTwECbmFtZQAASAAAAAJnAAAFTG2OQmNwb3N0AABKaAAADFsAABdw38r4S3Byb3AAAFcMAAABKQAAAax31wl0eJxjYGRgYABi4UzOlHh+m69M3GwOQBGGS+7aoiD69m3ZBAaGfwXMCiwbgFwOBjAAAOrvCLcAAAB4nGNgZGBg2fCvgIGBWYGBAUwyMqACFgBGqgJveJxjYGRgYOYDEg4MIMDEgAYACAkAVgAAeJxjYGFWYJzAwMrAwObA5sDAwKwAoxlSmCIYQIATTDIsYODa78Dw4zeQqQDih+kF6TE0MDD8/8uy4V8BAwPLBsYJCQwM++9/Z2Bg2sP8AqyOEQCWzhJFAHicrVQLEoQgCNXpInuAjsWB9lgcK0viJ7hO7XMsBl/4EnD7lLKpqYBtwmUB+4BtULZ8oZlIEdqz7i4OofkxjCQKRoCxkHkjG5kxidE0gOF3n+cVxerKc91eBf5gRmv2JMe9VnZ+D6CBNGKOvN+qgrIWZ+RkX9wVTCdIeTuBPcuc6wxx/fiesJUm69JFK2r9zs/O8x9ZWPFl+qKu0b75f2VVBsXeOr4mQd01yOt552V19qzPpHKHPw4qDPxq3c/3PRl43ZDIzNCeoX59BwQqohwpHIWrT6wAAHic5dTpV1VVGMfx79n3XjO1QJxwAPc5uK+a5IiWSoZoRTPOOSIoDkilOWsJFrlwDE1Kw0qQFJHSHDLNLA01tcTVqHl3nHNZ+qJXLbVcqZfbEVm+qr/Avdbeez0vP8/evwfwcHu3w3BPvJVuZdTVXm+Ze18ilwZMIcfIMdYZxcZ+IyzaiiFigTghTgrtWeJZ4VnlKfac8Zz1XPWmedf6Dvv+8F2NaRvjj+kU+2bsh7FXZKRsIS3ZUXaXvWRv2U8myiQ5WA6Xi2WOXClL5TZZLitMn9nMbGlapt/sag4xJ5iFZpklrAZWQyvCirJaWG2s9lZnq4uVYqVbmdbGOOJEXGScqVBCNVGRqrmKVu1UBxWvElSiylZLVZ7KV6vU26pYVajd6qA6pCrVaVWlzqtL/kR/kj/ZP9E/yT/FP6NjsxsiHAqHb3WAzfXO6yK6znncdZ5znXmuc41nS50Tb4HrPOv7s96Z6zovu84o2Ur6XWdP19nXdQ6oc85xnUvllv9wpprDzII6p6/O2dR1trZi650Trcl3nPJ/nKkqt95ZoDar8jvOU67znOvsd8eZ6c9yncZtZ9gJV4WPhCvCWeGh4Zjaa7Xltdtri0I3Qn+H/gpdDV0JXQ5VhSpD629Ouznq5tCL8Reti2bNqZpPa9KCg4LJwYHBAcE+wd7BhGCPYPdgt2B8MMapdW44150ax3Gqnd+dZc5CZ76T7Ux3MpyBTpITYYfsUrvELraL7PfsDXahvc5ebufb2fYIe5gtqw9WH6iuqH5ff6UP6316t96pK/R2XaKL9Hq9Wi/SU3WmztBpepxO1Sl6kE7U/XWC7qbjdQcdHTgWOBo4EigNlASKAx9cuNawkSfS/cWXuBuW4SbWi89N6T005F4a0Zgm3Mf9CCKIpClRNKM5LWhJK6JpTRvauvmOIZb2SEws4uiAwk9HOtGZB+hCPA/SlW50pwc96UUCvenDQzxMX/rRn0QeYQCPksRAkhnEYB7jcZ4ghSd5iqd5hmd5judJZQhDGcZwRjCSUbzAaMYwlnGMZwJpTCSdDCYxmUx3ykxlGtPJYgbZvMhLvMxMZvEKs5nDXOYxnwUsZBGLeZXXWELOrekkGt1uw13fiY/YShnl7GY/X3KUI3zDMSo5zrec4iSn+Y4zfE8VZ/mBn/iRn/mVX7jAbwTQIp21vEEe+WIS7/I1b7FCrKGQ5WIf2zggdrFO7Befs4x3xFaxQ5Qbe8QeVlJkbOIE59nM66wWO410sVeUsYpNYjJLKaaUz4xeRoIYIUaK8WKCGC3GcE78g22MFjPFCpElZngae5qIDDaIsSJNTGELOyihgu18wk528TF72ec+8h6+4BAHjShjpjGfAmO2MceYy0ZjgTHPmPUvOv2ppAAAeJwNwg0oYw8AAPCZmZnnmZkZ5pnZzczMzNfbzMzMzGyzPfO2Pexm3/xndF1a0rq0pEu6JGldl3RpLUlLl3Rd0rUkSZIkSbquS5ckSZL+1++Hw+H4/2hwYVwcd4C7S6GlwCm6FH/KbMpWyi88gBfih/Ef8XH8Ef42FUzFUr2pn1LjqT9Tr1JfCSBBTNASnP+ECYuEXcJjGjfNnjaWNpcWTztMu057IOKIAFFEdBJDxFXiIfExnZ4uTcfSp9PX0n+kn5BwJBpJQXKTIqQ10jHpJQPKUGV4MxYz1jN+ZlySiWQWWU7uJ4fIS+Tv5KtMMJOfqch0Zn7IXMs8yHwGAEAMqAA3MAZMAavAHvA7i5wlzEKyJrKiWZtZx1lPIADyQBXoACNgDEyCD9m0bFG2NtufvZC9mX2R/UIBKQKKmjL8zzRljXKSg8vh58hyZnKiOfs5N1QmVUCFqWPUSeoidYN6Qr3PJeWyc5W5xlxv7mTul9wjGommpS3RvtNu81h5aN6nvJ95L3Q2HaXP0DfpN/lQvjzfnj+V/zX/iIFj8BgGRogRYxwzXgt4BZoCf8FswXrBacFzIasQKYwUbhfeFUFFaNFUUbzoggkwlcx3zAXmN+YF86VYVGwvnilOFF9BFEgKIdAE9BU6hF5KOCVIyXjJSslRyTNLzHKzoqx91mspv9RZOl+6W/qbDbF17DA7xj4pw5UJy6xlc2U7ZbccBkfHmeQkOL/esN/0v1l6c8glcMXcAHeFu8d9KmeWq8oD5fPlG+UH5Xc8Kq+Oh/HGeR95Md4x77mCU4FVzFVsVpxVPPAL+VK+nT/Bj/IT/ItKXCWvEqkMV8YrTwU4AVegEQwL5gQJwWUVuUpaNVz1sWqz6loICpXCoHBZeFhNrJZXT1RvVz+KRKKAKCY6Ej3XsGu0NcGaxZqdmjsxKBaJUfGUeF18WUuqhWv7ayO1idrrOkqdsi5Yt1p3UU+pl9dP1G/UH9TfN4AN0oZQw2bDr0ao0dg43fij8RFmwmo4CEfhBLwHn8J/4WcJTcKXqCReyaTkk2RNcin5K4WkCqlDOi1dl/5qojTBTfamUNPnpt2mOxlJJpUZZSFZVLYlO5U9NdOauc3q5lDzQvNm8285Vd4gd8oj8g35RQuhhd+ibRlvWWr52XKvYCqkCr8iokgo9hW3rbTWhlZza6R1ufVb62nrq5KphJVG5bhyVZlU3rQBbaI2tC3UFms7bHtViVRu1axqQ3XdTmnntmvane2R9lh7sv1JzVIb1AH1gnpLfal+6mB1qDtCHV87djtuNXSNWGPU+DURzaLmm+ZK89LJ7DR0TnTOd8Y7dzovOl+1kFauHdMuaLe0F134Lm6XosvdNdOV6DrretSxdRqdWzeli+q+6fZ0f/VkPUev0gf1UX1Cv6+/0r8YmAapwWqYMHwx7Boeujnduu733Uvdye4rI84IGeVGh/GDcdN4aQJMfJPKZDcFTPOmmClpOjPdIXiEhUgRDBlDPiLLyHfkDHnuofZwe7Q9wz0zPas9ez0PZqqZY1aaMfO4ed68bt4xn5sfe0m9UK+6911vtDfZe4cWoio0iH5G4+gWmkSP0Uv03kKw0C1cC2xBLAHLtGXZsmU5s/y14q0Uq9JqtU5YP1nXrHvW39YHG8kG2ZQ21Ba0zdhitl3bDUbGWJgQ02IOLIKtYNvYCXbfB/TV9SF93r53fZ/7Dvqe+xn9hv6V/rMB/IBgwDowObA18GKX22fsybfAW+vbz2+vHCLHpONsUDQ4Pfh18Mfg+eCDk+GUO/3OJWfSeeMCXSyXwYW5wq5ZV8y17zp33blBt9TtdofdcfeJ+9HD8qg8Zs+w54Nn1hP1xD3bngPPpefeS/QyvAKv2ot5A94p75I34U16z733PpIP8sE+g8/tC/sWfeu+I98fP97P8sN+gz/on/Ev+3f810P4IeGQbEgzhA65h94NfRiW/bcaQAKOwPvAVGAxsBLYDpwH7keoI6oR/0h4JDqSHLkK0oPKYDi4GjwOPo4WjspGHaPh0eXR3dE/Y8BYw//VdTDPAAAAeJzVfU9opdm21/flJF0UlSZ8HD9TRVEkh0MoLh1pisNH7uPSvCv24yGvxCciRkRE3CIiYkQe7z1sETGg4MCAAwc2OHBggQMLbHBggRccuMGBAwMOHNjgwICCgxeQ+7oq5V7rt9baa+/vOydJV/XlvqRSJ3/Ot/faa69/e/3bzVbT3JzNDrdfN/vN06Z50q6GRb/sl92qWw2rYUk/dYuu7VdDbI9DiCGEm90wO7zZjTdn2y9jDDeX6Q/p9+3xz3+2dRpjk8Zsmtnh7Kp51Ow1TRpmlYZYdMt+QeOEsHV6c0aPXaSnt97cXL57FWbnIdBjD+zZGT89Z7gO0igJojlgG2bDql8sh9U8gdku+kWXfp/mvwAUDOS7L7dO373aOk2Qvv2Wfoe/pN/TLzDdtoMT89AsaawVgTrM+1VPODhKaNgZln0COz3/ioZP4NN0afAQ0mj8PXBDi2hp3K03s8M0JmOUx+FR+XOgz/Rufj8DhudpVBmCxwg8RoKqIxQOPAZ/FuP4D4yTPxrbi/OES4UG49CGdDP5iYCJN5eRFpHAOaZvaF9vLm8uQ9olrInHWQNP2hGmF8UDIymmLQYkvFoeJzZx63TrNOG8OaIFYJhle81vkDc2mS5nRENP2kSD2I70TL+cHaaNiJjlk58munvDD9N6A+Ft600aP633JO/nF/55oIog5BnlB9lEXmox/1OBgNbYgSfmAjdtA0FjQ3ioTnUeoUrZj7SvV0bVgss0aseg9Suhv5+03bLYVQI36k83Z1FIpr1osG6My3RMnCELXyqUNMlJ+k2UESN90Et7nYGPAQMmON9/zbxBPNgwB0Ms8CthIqGZVprogykm8dVXTMrvvgyzK1rrJ0YzM+HiZfO8aWgjnrNQSJ8ALlHicki/69v0Rdy9Q/ImMlXiP5IVMckcEAkRJq1eJI+yo+OdhIvtl0QBLzqlUsc56RObzdS5/bJgmfJ5o3WGGDxHnzE/0l7j9btvMEILGuQ9bk4I8d3S8UtCovAvr44JRr4gqGhhupZt29dZko0sT0/S44mPu315xUbSR3u89SZhX16dHP606ZpmwWimJRBtpAcT3QKC9O4k1mbnb79KS0kwEL02QgOMh1XzqwmTJHVt/cJKA5NZv+T/vTSg18XQKsORjMFmKcoiUY78eLOrK1ceHP2Ah6Pbn0SmM9rfRUff35wx3oGrg014h6Qqcf/u1Rj9Qgs6ZsL8vBht2Qm3R5I+9JGUzpv6mROhc5XYAUwXSPOlvfI0G1luzYnmCM+OYtOs0G4sn52Qr58DfAnzPXaF5DE9wZKueNDNedrsQL8u0h5dJ1ZL6y9hyjK/XxVwyZr8h8gW4y+vy/aY+wvdYdsMHohN9f4OOt/0neKaLA08kug0PbV1qvbGvBNt2xF79EtolLRLp7S/pNGS+DiLLDNpdYm+d0gbzZm9W5aZLGRId22/TKhjcZNl9zlk9xet0JfgROiLcXKk1CF7Btqn/2KEzKRXGhfrff/jBMdrlY6JQrsFs6lhm/WDCnTgnFahmCZjCviGdOeZWDReitqAThO7BLK48aJt8MKRRDJJ41W/LPaW1hGjqXTbCEan021HzY9Ut5mEIM4bBEuDiCGWEJDF4D2wJGwPkJL8BjL+mF/YyASfEeen/UtWY8tskuxB4pNIhhnLsNZoYw5rQBbaKVZ1/PQQqWtYeMof7tks/1e92nKxQIM+DL6ZHWa+WQqNQBWvhEYgg6DhYpyw3UiORLFlaltJPsQ2i++/Tkr8mPCwABo6ol7RlMLL7UXC1jVRAfEUYY5gJSyl30b6/VF6FmM7G/bpZjqp6KN4cTRHOATN8R4sDIck6X5Cx4IVzJ95Al+pQeUwqMBvD/ANsnPy9lPeJ5X6aY9Vs/KzyT6xdV0RLC+6vCzGm1EqPpOegHwiy1i1fOIAo9VMO87ugN4nPiYuJq6VkdN6YdlF2hX60lHTiUrZNijPBsdPfWF188rAPavu+WqQXRB7MKro4mEJhSx7CvjmBl9Hx6eFg2s3Hch22R4ETAnAMTx0WrKdZEzJCKs0GKMoyBAsOiGz9dhUwgF7ktUplpYG5PdH4H12RU8li+SCF9JUNGWntmzwZkgGhibjWNGuqJaF8U+F/JrrWWlhVEq4lvXxeGzTi26AZoE2T9/RYFvpv/TGxD9ktxH3MlmCu1iMNtBb/J4HzOE9GJzfdwGhAPM8Zho/J7qdj1jRbK/CPjU7ir9RAi6ETNKBZC0mGcNw0gm7pdM0Ts8shI9VFtn8J3ZmEVtwbF+bfVzCUE9f47zLPCgEsejnpIUYeOgzsrdwyGLzn04FmbbP+bSST330HdH4wCMkeiJNmUiBSIwo4iLStpVwPHWSoRdp3y3SAVDPjlgPdFTIxh+ZWXyMLWgUPgyynvnkqBR6xPRAJzzItQQabTgproosHb8cePm5BDgdjrUrkaVqgGV5wONHFZ0RcnnLweehE3p/LvJYqQabR8CJAE6DlvJORsAJqZPHhaWBJJOXaRgSS7RMrDSpqDzW/tqxejfOeBS/pifNYg2mGEc7SwzvcEVC4ZodARW+YHXslvvwiCkkiS6mjI6toptLElXtxdvH7bW+P9ulzdEqOw9IptqRlZDqx96DLa5+BpbLUd0VJG3U6TSNf5yrzY/AmDOvWMa/GLXCROnw1FQwKEXkPZQTiE5vdkWW5XLWhqXUsZ3aQYbRc1c0/9vH8KKte7Zn6GXny2fb44TaC3l4y+3FXum3Mxmt6kchToK2oPt5yZUJd/3MOJJoq+BHkoY4E/84802ed8U64ictHz1UR1zCgjEYohz8RnKvkg60fjraq3SIDpbIujDpaYansGeg0/MJvTqZq47nbXQn8ISnCJsmyjmMV1+dfbuF2ew0EgBjc/wNY5nkaGLPmk8G5RPMHdl7fP72K/oqaBgaF9KsK32lTpeJiyMfnkNFR+AdfOppDM/T5+w8iWnS2G/S7ObXVPxlp0afheoyK9beWVrGTWqJu28Km3TOJ1KFR/E3KKL5PMOagw7pIhaajXYqe+QLK5X5U7ZN9JGqbu8vgwJ1cukB5BLZXEkTEgyRmc3rU0QFnA/Ne8Gqsz8sBoUEu9NU87GUSue+i8grTkT99jHvA52YOA4x9i8L8lXzqipydgSfoWeH778mzdsnLJFvi38fZ+ftdRqXzogYSs+IV6Gw2xNbKkfTZ7/SkyrvGYxHPpBG1hYw1XcVuYVM+lS8OJ3xXSfehWMwHO397BwK7Iz44VvedQ9LtmN6YAwaXhhXOMkdHzwtP8meZdYJWIdQXxBPRBC1x2siZhS1pOtIMHTp5GFQZBjmCT387l0F4xj6kwcMQsICzynggYRbdU4jyylGqVUY/EKVlap1Goc4Fufpns/SC7H3JU5lehLHHXF9nLERBE1A/7PSrHTH3GlO8uqL50ggYpHB2pLkLamerdPG+Zse5hMnPQ9vExsMl5FnpsjWFXwjgdagvlg68cIGIYOE/SzsD2LFTK5uYou0JduvY7NWz9fiaUrP7+IHdjqVvPjQ2yRqkRzjMU+HHftYNYIln0w/NAdLm3evkslDAmzX0c4DeO/wlGjJLkLTREWmotQ9d7s+l+/Tq6eNxLuMUzEh9HEiXGDATnzsHQJJkOpTvsvjDBVtwWPMMkBJKxgcSlmx4t/eaL43mhd6N/5T65qPxu5Z1eXDWl3er9fl449CJ/cmX8F/enLoovgP6cB+ileMRniu9pW1LFk88G0z55EsiHxwDPJ/1oPpuT32v3Wm270vnCxm+ir0ucnADfp865RkUJr7Wtx2BQ5flD67ke9PdUqhz70wylos08fc2zTiGRjEtgnsOmFjkeiayKLEf3r+mfOnLXlLS4fTAhRhajwdUGPIwJnO8vaFyNUlW49MNx0TWT7ZFO6OBv4J8j0grkSxIXahwD9B77+o5mB6Yb+taEayAWOAZ9uczia0RZ/DdpRTvVJaD/IXqzjbCURj6vffd7FRsTqOJECqeyMxIxcdhauijgc4qhs6Fw/gQDdM9Nm5s9m2X0rcrvS/d+ZvUXtUzT7mP2O+6G2KNBbv97TqA0I8yaVh3r2KpQ6kQU1nwXfPlM1bNrBs6pdyBqHdEa9XAEUGDeQXmOI/XxR0dEB0lD3V5qvm0wj8+DF4Q5dpNGo4QLwh4Y609csaW0xwza4YrplajIRfgj1ZbRwp5hyVUMRksx+yeyH5KC19v0Ichez/IDLuTHDIBxhRROKSJCOD4rYz8hwKDGwtsFduxSZGQlI6Yy4hYPkcyPb9Nay3S5YORCsaE3zuo4LZVjgaWw+DyUDFZRwnlBi3SowOsUOydJfd1psImxB0NR1v8Lj7lO3LJ4lD4K3pTjqNkZxIoGhO+5y+dvgsnH2JUBdscTIi4R6kNAGmbjiqvgQcs6vZIeOS4aB4OPyeBH36PWKG6nZU/Koww3mIycPi6YfISXnBvlIJySQczg6TpAY/QCBE2G7tdTp/vPQe/GUVa1hJnCHaiY3diI5O3Tg5PoxTimAMLijsF02vBA6bL8lirLVpTYpRTJnJHp4ZiwkTXyL22g9Z85KaChK8DJz/xQo7uhyj75tn0JIgpiQU2qMWMSgmFsin9z9OVBYI9sVyUOZfwBuFzBqDPQiOHjHnLjQUJFQBsxNKAjx2ynSxBx0KHiuogJeYKUHYLMgZv+IzRLazP5ywPB/F8VeDCR6LDnuh5IVVw35kjg2/ZLn/mYufTwTjZt3qSWsxoupsLs6KKkRHCLvZhfGUNE813+rW+ejENCxzhJct5WpehL+Za+sIoZ/e1rztYPgc+mEjFKKdlo4b5omnxIfN7pERJmLGM06NI8Dy26EvE3bWxcBgVdrpmKPmEWEw9q1JOJ4PhWJrSHxg+zXHG5abIw5zkL3iVSMPhNiJ6ANkwB3nkAzAZd+NohtR5VE5B6RFUoajOQ6IC9bNoZp8ah51aayZS2fzcy2JFzbMZbbm5HxifmLGU5nxFTvXr3TXsd/bZsfRfh9swKLN5LImaDZQGonn8Uw8R1p9Y/O8Ztt3mTG5GFFDl5XH4oSsaRiLaoCJvIqWkQDHVaHMS//zkzyX+mQWHfzPvUWAhHgPg9r4xLjs79P8lTTWjzTDdDo+JaLbPIc+UiVnJ7bKJdan9rQCvWU4eiqnu7URp9Y4xkeeiIzI/e4DR/wdMgCdb0joOUdBBs6pYpO9zRKIx48czif7EGvhwzOSfLJm9bA/vw128xaM4Be/y9olFDz5UvN8bsPUEVOsnylZMuzrmJgIa2ryOSut6ZGeECVi1LeiqYXqWH3yaBQmgBW9+XlB8S3PB8Ep5/rOnZtl7sZC5EoyWy3b8+1jHY5sAcGX2gKrcoSZ+OcsuS2NkZ9PP5T8dJC9nUVM1eKYnBtWxuM1+cOiq8xkJT0up6NktcSLyjRZ0M3OWS4ku4tkw24Wck6mPsoazTLgZRdn2QMHt4tldVAQhkd7+xWnPt4yHjZ16Nx4bBzUo1GY8E0x1l6dnU9ewc5zivMQZi6RqJQq+xI+y8DWMce6I3sendLw0J4rJgUBWV/oubCegUdtNaeBhAZAjrEYlcaTfBc9a6lf8NYglTCx92m5s5OXE3IG33PVD4NELNJoJxLsoWxykL5kuEcNwUT2fJJqi5QC7+n1Uekpy9QkUUAJyB2+/ZYrMrDxG58X6tHnJx4vn98vn++cfIgWuJiCwvGF7mMx0kxkpo4CWekGORdYQpPtr8bkrosFznRNQSOvUcyuHBK8FJG1LmZs2Ve9xq+zL07DxrJzlJ5fxxNcBBs+MvGYUhRELAbQEa1KlIFEF99+Zfh+yVbL2ujZ3I5BdKoqI2liAdQBNWEtp5Nvm8Pr5ck5RlMchqk5nt82x8pJnWoesMfamao44ca5amk0mksl0mg2NaIzHUtdyMHG2eCHqGaBo3RqNY5HxGJdjzU7Vg+LRGhTsVQ1x9eQQRkXmJCDS5Fb4ke085JEGPSMJ670CBMZCerkY4DP45n6fUVQdLXdGtWYYPP0DFndVrwVa9lB/q3FughqV/BEHU0Vpihiqq7G5Y5zyLmZuWI8hwaP3BSqHcrxj9auYcQPozmEIcqF2OG7yToz0aj6AydmkxPWomUadbOo+vRTsF/VxQMC25kky3u27kxZzi12m88h6alsIyKGm23Vl81DGsPFfJ1HIlqKuiCWwr9exqid+ZDOXNUYDos2jgYqMNK5Q9rM1QWJj5i1iYxI2AIQxyK5qTjLhvF1RVqZ1Zww4asLXg+35M1OEJJ/c9UtVU5HIXlUNLiTZZqApA+9KVmbF07+PODzs0WEn1fSbUfyniRrXWwt4jWNEjsnGYeOKx09ZR9WHDbBXIgjZ8a6fcxCy9RjuiGPw/SYB+vGLLloioHKkas80w+yZ/WXWXO8+5LCvo43N9uzwpUjhqRBkfsGwBuhXcT5ZpL5nPbpKI35XDKkb864ukc8lrpGzg2Ya26LQnDSLyxj1e8y5LzBYKkRxX48gGWm0WxvpcxdZFvMh5jj28KLb7/VQPf6MR29tKMxfcxcJYUN6sfc1xpotQw8xZSwitRwwXi3qQrvtuPLfFIzS0BHpO/NDChBVTCRv7qF+Dj7yQ6mI+RzLymLaDnkSRkzV6AbG1v0QyOZMy6/A5mSFEUQ5xRXKSUhjvBp5DIG1PReVnUDIyi5tnxYKYSS5c8/lQCKETTysx5s9uVy5Sw+1GVHiTNTftzrwuZ3J7SxhdWOM9QsdlFbU3f22fZO09c+VHeAql2o6onivAXnU+M1bLDf/YwjK9RPN2XB+71du6Ze6I/qAWajNcGvcTbl845Kk7HMBVm7Gp0FcYliNSFI4d5oMUrw+Qx7oFb1pox/ieiNM/9ZuMTKmxrseOrOPHOnOXqfbeh5tsw8zMajCljjWA//Z7fDP89/7UdrED01tYrDGl8v4SNbu45Kw/q1ZB2rq3EnNr+e5R3Ws+qXo3VI6kO9hquybtLr1xJ+8RcZzGIWZnDP4/3xnrM9JvCOOqUNaK99npNw5ykWFc7FRz6B81Km7hXefvVSJJs5Dz0Tz0qOVdhJD1TJVog4PcUQ/rLRnhaML58vC3qfzJpVr1pOnE1Y4g4gZe7sR/cDT9QAQe4wTY9hBZ4dsEgsiDwwad3LOt7x1MU7JiMFMx65qOThTjCjYp7t18Ue2rluzRmylazm4tzIRVrj0+/94ihOn0xENwLKwNYHUjz8z6bP2JWWLLOioz8HV6fTADa7D/7bUZQmKabpWNDreA/8q2yp/A+jM/uF1OaLnr0F+0unAUuoRc1O1oF52SI6dhLzy0K/lpi38UeINxa7ZzzOy8kyHgc5szZKNsUHt/iDsqys9yMi6jrhRynk5ZPmqPkjm6rfvL6d0x9HlXCqdFEPV+qAfEz5KkrdWLb9n5Le2ZShX+vhOmM/ALPRHaY1vzp3aWnuu96M2G7NepGTd4fV5rMI082mtXrZMFqnBUHWrrNc40J9cOsqGrGutrQ9bqyqkctLq7WRAj4TWeHXdXDLHlLko660iJNbVo+9XGuX9GVuwESFpiV7TdVpmm9IizU9Td6yT+AHwDOmR+6Gsokey5jXflkZOqtiTtlvH2fnXC36FZ0vZKymjE/ue41A0M5cvLMdikoVsZKPNTuASsnsIPYKcJu+51w9q7cGb6x6re2gn12iryb5kkMI59TyTDfPVSlFDparpRGMBvEgyDd0zDXAMg73NFOy8Fz5eL7FPdCDzYLZLqRf1Hk+WTteNdqxs/rTFmffr8bxZugCxHmfGR4qQsi5Bd99owWnwBP7nsVP65/lua+l6mZ27jy0+bmc25BVw1DgQtSCz2wgCBwe1M8L3/d4nGKUY/MyO2jaJgr/7pdZGl4LR80vyso9qKsE/nMZoy99334MZOcrQUt3G0CBDz0v5byRvTpvxOWM5Ig6BJHUPiWbYm3tE+diZX1N/skOHH3C+dxSs7WMImvi7IqCBKjKpv4i2ybr6Nlecqs6yiCZr+qaLy0Y5YIxpIi9efdlWuTbb30BWMUb3CHIVYd7fZ4rxTWpPdapCl42fkqxlhcFXHriX7kRNRYBxhXIXBJJM9KLm6rR910Wr7llvVELPhyVqNtk6+caqlyIO8/ly+RsnhxvvF/dHTLxNZqPurs1/RaybY9BNQYnJ9hca8+7V4zzkCnT+EjjEgYLtkm9lK3D2Wh2H+FUCEzfZhgUMS3XMp6ilmwfKjuzs9ivx8IhIUirQiEbd4Z7OY2LGdxZK4MkynIEjO2XpV+R42kFLuZ5hGMJ+mJ2PLqmB4DNP2jOWND0CUxMoQknm8f1nx0/Cc7DhFTLWZ7duXLHMjcyNeU+Cy5REySU22BJs4zG1+08ocjdoEJwZc4LbscZ8y4ElacX0L7kgvF6V/ue9HV+2Vz8i0LP2BCmx5xRZgmUoziIxvtOnCdx38f6NLYyCvMhyFfw+1y86yMYPZ9nOJWIq/YRSsczO2NWsLZutHmGtT3WAT280ocgIUQBrnNIx/A+8WdKgxcsXyJ2+hxZweu9bEUcFT62Iopq0cMyhvqa6zr30QWPeGcmY2vlbtABGQ3brzUTyFXxZhmzX61aVO1Se3og+ULbenz3myFoV5CtYk/yCle5ojfCmcqxHp2bMq/M5irzBst+QAPXZuU4KBcuF01CrsiQpFYhRWz1zuPUQc+RTf90HEHNXoAcny2cR2VypKRHFvB9v3E9sDwuA7xd4G9/TcSaZcKOah0XsTZOGedfBq3vcHjdOP5C9eLE+JMx8VrX2q5ZZjv66lozubLnEu+7r0WXXBT1sS5wPHLJRswVWrYV440vT9c0o2YqRjhkklbLSGsxchea7DSDLYsGVmQNaRlGe+z0IHuXpqvOZ07+SvDJhK/6oHEKWBNTW07D7CXvBNzIkap712CC2aH1txKeXwu99w846IMaKR5+I4QyzrkG/pmPI4zgR8XrFOZL3LMttB733rPncV/EQAT75zUdJ/iXUvnV39YRQLMN1nQGiEGzTN03mLHgmzvPp7HHyfngjRh/qE3q1/f5XdeXPSDTa1TP5XiZpkkzvyylwu32dWaXJbPRmvWKzTH1Ifta2uKf36VnU1k3MzGzcoE2ucjL9lFlz2d3wvY95l338T332NlG6+jYDlv+G8VxRct3nddx6YZ5fSihImk7G8k5S+Ig1jmryiS1vAnIsCRlrJFWvWc4O4z7dhR7ZB088pBFHw/GVFLw2be0NwVlbZtqoy8mqfQDgHyVGarodeD7RAt8ZY8RYc7cZ8T1TuBWI+5sA89XiUPpoBUAjEhNxEIYMgnBJNmcz13PrA+v4q+GS92dQfMOg261BFuOSz9vkT00zrRTKyt7F+vqANngUX6kz/HyI5Y5XjrsLVleJcx7NcyL3sVBc1M2dO8vYbNqjJU8OfPwULpemEoO21iPkZtXLGIVMh0XZEydf3zGmtq6RY6dDLcxy27aPi+qVjR9/cTvbNA6S+5Fh350xda6WqAHUj1a726PDMbVgM53trsXwnAjqAMXBlU5h6iVqeGuLHTDsFrnIxQz2D4vcK+EWUdUDM+ExYFpDT6EGmifJxjKM6LPv/PxXOlconlSmTIzbrdcPx6jhFUxSu5NZEN5QsCH4rI6s091HSpsj6Dmm1UQIfmN8wNj2VNhnJ80MXYVF7XxQ1CUlp2Oivyk4GG36LWrM2pr2LWA4UILPMb1Rt7X6mGfzOv0sFe5nZkk6uRJk4HB8LO/rlKK/OVH8O4r9Lu4FmQS+gn7eaKLYp+7CCw0ZwTn2SCS33VTRCapHjS1uU4O9rt9fsb973UyPsiWU/UL9bNbvV7d8UlOZvp/QFP7mqZe+1rxW9a2kmzHel1nMU4uy8UeWIcubluTzlCuJV8ZkFfi897UNrzb/vhcjDV7tHGXCv/vXfapOLuN9ymaN8uv71w3KtsynfbQ8k2ggnlnUU5pPizpZ4m+MT3cDf7pTqPXUftLWPCCTDQtSfI6uOytt8x3DJHPVawcc10IDNlvrf3sbX8EVSvx2kS7k0cRpE3tgTXAw2vbsX3XXgfGnbd3OzgaVms7HqTXDU0PQqkz9zHvbdWEYn9N1q3pGWtz4drIF8Hdqdd3XFA9m7MZpc0YEAv7FlniLPk8TfOZ9vO7VceNJZAtLB+tom2f1ctZnu+21A+/FkvBsqGFJvpcQfyFBLi6USUxZuCsKrKgOEsF4oIkR1FPPedcnw3VH9O1OcKaMadwKM3EzH3Opij8HxtP5pQLIzbQ+vPi1JmcUexsmLv7d26fb/yB2RrXgxSe/qqjsx4pc2fnwDTnuzuzEVbiqnenvrKj5BPXxUFPVjxk1V2SjYLC7+q92YMGtGBfiMxSt4OXXLpUlV9bdmfBU7kRqltJjopVOzNHrPgqHyZ3iT/xhVAxKxI99MudMkH6adV3Qg3aozh6C4fef679t+Y5AWOp/oSc/sPvvZK+VM18wZmAHF6DPE7jvLH+VhBMpHev9fBkI7Xt8eyce2Hlnlp0W6Pg5d69zyTmm55+xHfMmJ3NJ2/zuqruEjj3eA35EEsxWTu65ow+7D33f36Jc6LvWXfigqTOJoruTKRj3OM+DcIP55A8ZPzIe5EhR4BFO3PyXr+W+yg5IqUSml7F2YgLh5RUfjG9l1rumnaNThmt1M7x6rxtdZdeOWJPlTnSIW7IbK19C/Mq720wv7AeD8f5bnmMU44/opOpYtblOAVpMCoU4/ObNvYb0SjSvOhfsrbfSF7PA+vW12uuWHkaETShD4aMUJ9D6joe7dlpVg7JHm5VzGMWZ49MSkFZMapRxy2S2EPgNmPH8DjLt5nS+tWzILT2jDz2HU7Fclgn0lWX0exct7/0H/2S34uyN6LwTM2SZW75ePmZ/fF6pnvMckfuSHWpnKRVzv0x7z75IXr969h3u7NkVuz35vu6xO3cL0f0CounvLALGhu4+z73onzsO04mdn8pvKiUXGw9fVeP8Yu988T7P+VWVpxROzmOzcWjS+5IaawXcdpWteTo/373prRubr5zc8n3bjIFvX1M3rlR3P3ed6vkOZ7bqRzGMFhLTWHPCgtsFSK0RmjBPCjyyyiE+QF3moS8b9/jPo+Zo2M+KT1p19iizF/dkjJe1L2oBpPwd9nHOYjSqe4MMewZeepxvZe0+3vcZeJ4hvWJ6+OuMKvHkr3uF/D24QsLqP0JTB3Fmb/UhiMtGPI12Xz+FRV45v2H379/2w/lg/Q5On3ubAK6EUkG7SynVrTxPQ7mXzaXTMg+9Xy2Eb18shz0qs2FusHVg8G7S/lJBCr6boVC+btcOPP7j25ueG6jRWn5HkO+xYEc9DHYmvN9L3ty7yav0llUfdSzv49e4S62nH9EnU20H0zHVwNabpN4FNiekWyws5B7FFDl5G6pews/WL9uJ8odqLBf9xB4ZrcEZk9Y+m6ujrJlvq1bFXNEfWQUeEHH0fkCnlqXlMy2EtPh16FNL8a1WrigsVAaHwHCtI6bXU4W3XK5os+kz0tusL7I7gy5HRyMArYr7hyHSRRwh2MQXM5xH2BFfENJdJnggt13K3IqA9OL85V2RA6kK8n4CXqVvLj6IGUMpnz89PmDd7p/hCi30ItPHP7NolMduRyOeLiYxYl0wYH5oZYY2uIREvVcynUHD8Ti4UHprCPJuCHkSFSdd45apUkBXsjurTem60RwFznC4qdAcqdgg92ranFIwrPzZdJZjW2npsyVZZ6WcwVlZvKgKhcDAox8UEz7TiJR4m3lvR5dYcfBblILjiUL384odZzXJc0Q74vAI1oDxfXLgmqEZuAqvdSKEKnEF5yJs8ydC77P/TP2XLOQxuckVRidSfyIMCILrrhDJN8uyjeLohqcR2bqlpR/TMOGhPEN6MLkDq4F6DUPhPlF3IKIiGD9x1mZRvFu5DVzBymRhwKTRQZUBFyrGPO+NcXXXD3ZtIsD10SJC4PtPaxit6CBT2upblLcye8izqv9tvmZlVAv5YiSXamp/nJgC3xhExEgiXLAnPsIzSwfkDtliUuuc7wF62HAbT1qJEXxM0rejjc4xb4p74hxdpLkZKtWpyWigXJiDQaxgI/qCvJqGRquPhJDMcgRQTQUl/Rz7JkWrPoTNWeSuew9AXNZtWpgojMfpOdrsrLd8qndAlZp4FWheWOhd605TplDvT/mrBP1ehQ9r6KPRalh4e9XG0Fk1o5AhMLs0hIo8hseupwMwfLCMPykzXUPIeQEXzXJcMeRyKhLaVld2rgf3ltTcXd++1l8uO0s7ttsqCL+RfTT/sX1osa9FVfIaXN9u1my7mtebsd+ztPsRiZStWgEBHVZw+FrlMy7pLkvGVKHCdeiujrT1pXPva3fbL3iDl+1mUJxj29UBPBPP/QdoHf31XyMc9j3uQe39jt0RVS1O0pjqC+Rnk9EA68D5xSRjVHIFpZ2L1R2F6PIXsgo+YiPVlsXZZ+WeUmFYnF1oD5LihfSY/fbGn6c8na5GLH3euXqb4vGs+drur+9ty47sQfldLbqfb0XO+93c1lSmB7PZQksi0y0Ip83Nz+weKUdnn16pD8n+FsaZXcXunoJVqHgLj3M+Vcf3W893XtZ5MHCPNciD+SUEr27l5nll8H/TXklM7n3YcD2i+MFDudW/S8Wp1dbNiEYaiXt/7svuVbmB/aDZw9MxQPCS5X/iiFG+0m99CyATYXNxzktoNcFco2GlduJxZDHCpaMgfu2qktKw8ivO+Iq59cVVnqMk/+Ih6Z5cn29YMGZ1V1OP5DvXKptQTpyjuRcJj6jg1QeJ17kEN1H8pffLX7xB8O/fTBhC6yzAcb6n0/TUe3N7+vPdnsyJbUrSc2Slq9c42u7/6D7s0WvfOo0PUstjegi4VhiJgUN0ilKaFCi22e4xCph5nF7MXr/Cye/GCQdPH09tjw/4Sn3XoFHWTI/BKgqWkzKrFPrjv6nfBZmRqlBAAGcSY2j3NWQ9/AhPAAvzOIhy2tfIGaYLZZBdtMVQb6WH0p9aHcR1Eqsso0hi8VDJUWWyyyT7cRTmMWW5yiuwVzUCCYp5cF+xjBpj5N8JFDPFf9jkXJMN3KjvR2rzlr/d6vBegkhB+0JutA6AUBXnB9rJxnqaZxrUj7aXePnLuthEN9rIe+OpQI81xKfYq04arozGt/RW9okkv94JO62yibhXmSyGU5W467ftfYIumPAUyH2iNwzTTc4j8yRuXg8YIyI94pM6HevJPOL5IfzZX2MO8uz77WyP7ztkZ1CWntk1kL+tqnH1Cw/5NCuHJZVnlwWnT2t1C1WPUm8naG61FsHW2+45IGyKEtb3fVRGD3d+Rq4ws4gz5YfUMz00fo+sE9Kee/4BhuDo+Jfkg/mbAov620MjTSN4vnw4U7YGORZb49p3UUvlw/wFdc2BlcQnZLF8xHvM8/4mOrMWnZj9e6h8s7uuXlRapuC83QlOPbB92NP9eYecALP/lNnR5gKEEIC25m7l7uK/YB3gYvMWmM/0D2ntMLSfgB9TdkPF5AWzFlT9FjYDzo4dR4x+0H4Za394B565e0HkfmIxmj0hO2HobQf0mbf6B2oieIqX3W2HXqOzPbOduC4FJtgXCjX+NjBXnHvmyR3PGdNk9sQOT3TlPpTfV1OlnYjOWq1ekrhBf/umxxky3mdTUCLoAugM0cXckC1psVBc0Y/r0UCOybIrcmt79P6g94Xk/3eP9QdK7lH/7PcD3Cl2q3bd5gN6mIU/EIkcz/Myt7iHOKxZ6HqZgHLInqtEsR2G+uossM220sjmVjJRdHB5TjLu2Xsr8nUH300Fice95XSrnbHMKMRf0AN1YfeA4N9O5U4T9ULDj3qeN4zZMK5rnRNLUPY7yr7zR7TNLf3u1IjySDVl7F8vva5uhG8zxWK+EY69ZPp4M4QfU112eMaouasmHPvFdSto7Nbe8mVNFdYMtP2zFS93svbbC9M520vZpDC9IKPp+6LNVmbWfY0cBo4WAn+RF2m13F38b0yRSEelveEYyf6LJL1+BzAsvDM7pKFY1L38XzzM4hCX0L+trgVcXbItRKJ7wIlWZS+r0Oz4833i3iccG1lx1+gH+MFd7QNld/rkPUx21A4scFBHHzcKL+3V42gxhvqQ9hCj0Y9CGjQZYbBPfuAcgkWkkeQTo5vJEaSbfhDju2it6TmtvCxSN5PtvGbRvxDUhPRtHD48d3pCQTUreu8p+k9sAR67e2JfgnLDkUxajxLtWOUWhiFZ0/xnHNLEOuQlq88l+c5fsasRVUOqDPXXmtU6QDjOEjneqYvOvRdYz9ajdWnp7nKQ2riQJpWb35IErUT2JBpCEP2UtbEF1eVfvVqv5NVxBH7yf1m/82TdiWnb8FdF9WJR2NHy6byOHhYYu5oAQ3J3IRbZxh5Ab3lMmz7jq75SVhuwLsIbUgl3i6MwM2R0c/1FDiRqnbgZEAIUJBCBXmzwyjngVOGtTkSXC8GuDeoecQpijH8voqW1WMLMkqGla3N0vWEpaUUrOLdXqsm1HMt7VflpjW16/g+h5yjl/ccezIo/y26ZZYmXC/Kz1ObzCsq2Cjm7mTvBTNCYdcSeqUlbJ2qb4bNWjdvb/lNg0IMDBvQOFADCWquXBW8Id2fs32xFBudPluM2knZm4b87bQiZXEREWn0qTI+6IwT4KHtdtK3yg0k+ZTLyYP19ttSLikPEWcXcsbhTXNflr15k4O5kpMu2+UmBmiZUTz7KUekTIRQdjdLkAQMrRRtNhyOihw/qTvttBWFQmcw3uM5oDI/117c5znJmUt8tnWa5NQ5y95eKswu5K1ai8eZgfyevVxzpJZG0HShIDXAIxr1na35lNybjz1fy1T7/NX/MFiMI2GYQhyl7JvMZ3ujOK1jyWv6WuRYsn1ON8uobaTJ8Wobyez+GMYtMs5DMe5mOHNszcYcwXl+ZzjNUix6eci2THfycOdAdz9ZPTJZ9JaDjk+5fXgSVl/Ps3FMvvOsGHMNoHZ+/6j5xHe4K7n1tCTFFpJkOHFZcj6TbryTztNTbR+Dpgrz+FwNerJBkkxor53tyRfU2N9O3d9ww+Ttf0tyZnaIv5GcTd9fwC6c/D2vj6Pw1Gu86dNfdhL+c2OfYPVW9DT3IbJaVzqPEq5Mpqx/j4TNYDdwKmV6z46XZyybqjFgYq+Q4UyIU3kndb4PUHuMqY7klYmPhxTYJJfjzs9AStrZiGHdI08q2PFI87Yi7pAIGh4MY9g0D2ZhdAc5PzuPOgvvJ52TpCYbXTk4gYO8o3wJYaIl7k5LVp9/P/Lm0dVDom58Wo32oZQNtazPR9IqW6dyb6Ydd1HqZY4y5vtEG1Hv2KR1Hwm/0zk+2kRcR8yVxK5WXHtdb2Mcqck/yDcv+5x0fJIU0QoZMUL4fy6QQRML96G/jEJ7Wh/fDvnswR7IUS+lD64TL+ezAz7TKp648rzD+H4j1ckjv0A0N4DvNFI+d1IGry1O4x0IMuO28+c8QHzhZIXg4r68ZgrBES7Iq/QOeON6B5D0st4BxA/vv6Y194O7mcYuohG4XY+BuTq0uG7/GoXpuVlBccYeVsM0WeQMK/mIxcsItuxG0xvvhHJYDl6zfDFLSXr6dagRyc15ks0T6/cjy2chOwDFxmdZvlAGqY9s6+kzc8aAuqU5PWLONT3H6IfCEzE61GfQjOYUq4z3v4cjWySIWOssvfWZXLed/YkyOXVmGHq6S6tI8LV+6VkkTaxBglMgwX2sQWLysgbkXjA70hpIwgh/eBkjxbCc3K96g3thJPs16zNkgwocPE5hN59I4lGUPpDEbRq90v6PtDfJhk7z72jO6Yr5U64mDOp3Ztrh9yK2KjiT3Npe+xXBKg5wMpfUGJW2ZBzOh/GYtz4XIQS5WlYRbnpbnt1j3pqiy5DJsnz/C0eTNJfQJE1k6bhqy8gzXPk7FJTJfTuMLrNM0nyXPB+tbYomQ0GSiMcJPvZL3GqG0oo7F86UmnKELPN5BM7iNPyOKgV+oUk8KSSp8uE0SdRHhl9Y1qa9hW7D+6+5R0mCfh+0GIrcPOT8jXMU1Ws9FHfVBXFS4BZGyVXMskhs9SNejZQjVe29ijajGDEHFCNdxhjNOS/4u0GznnwWoFjAAeiEh3lCCf9PWullKr4b0tnmmaOxyXoKfJdMlMzAqCXgfH4J+Tw7SCR6JfaxBFCQNUTmMJeqnFm8Ufy0n5n21SVr9gkIc1A6gQDBMiNSWNBq6sZ37hl9NM0n8EGLb/6z5vNm1fxqZX9UqmbmerWLt3M19MuhM3Kz6n5PprIp6s4uNRTuTEAOLVd6xHwhCp/zvc5+hpvaTtKcci7S05ALJZx0qJKKNRx6dLe8JvyFdIvP++F8sf3yvo4FvNqS0Wlxxwu5YejCGgpwsi3asKezv/A6efdYTvONRS3wttoR3yA+kyReaktPsXXoJV8pwbd2nuE086G13hf6M6fXYwPId/mx8nxmjrYO6P7AW6iKMu4Haw+oN3hnTpZLWkrKQWKgpGuaPe3m1f7jm2fusx9VlfjE/KbQp2AAKQl2m9H67wJFIf1XytMFAeueQa+vgyIoEFsGw4+aLzIEUjptmnwxgudkGhZmXecWBu9UMGWeK88jAlOJl89vx0uboeD4Z4UTvYkM59MJlMAaYWvG4+NX7oOPuc0OzbgOF1GKqKcRoUI/iP4xPHx+q9Q1BZj3pRvD5PEStedoAZPHTn4z368sgGUcPW9OMlRythKrawzhBIbqw1eJHTVdprFT8/Hnd+TjfJBImHrQjzhIzxXsidrAQWIwVHB81vzkTjvl8HAXmDJW1oJmqBnBt1PJu+cJxjtJPILk+cjinJB8jsenyEixFguGL+Ci3TtpfuP+NH4fOF2P3c0A54cmwC7ghkX06/fe8TvDLDt/O8Ru9zfg+UdJz75ofu12eLOmvTu0QVXwLcBC9MUp3JLNEnN/AoVN74aVm2cupG+Hf7KuwzDbXHx6cjzPpWUWM3PzLQr/kJw5p31Lbq4T9R/yM9qHCIWAcpNEU8z1NK9tVcwnz/sPKdMUcgCOAp8duKboZFjq0dxWm6MeYouoszRbiWOcHWwaC+eycjwcnMohqzo9XzE9SE1/UUmQ49EQV0I1Gpa2DA3pYOZq9JP9fc729yJ39VOtvJIeMBQy5nvukLPMY5nzQnUfCsvQPyjauew8x88zNtb1pjOJwSWoriboFP2aTrTPMCiZzwvSU4UT+jiPir58XYDRjNTJUHTB5yvH7dff/eb2y+++cefBpfkAJVjdT3Ts6q1fl13Jrv3OM6XxtxoP0RgLneDS9xdFnswH+h03+L1b7LP58ST3CedZ9svrTQ3cqOPtY4DM9BHZX/7I+qSY7U75y1wlouksUutvaVSceGi8ekrSk6NWPcHFITSDjXH+yPUYSHsj/lLkUFIICL6Ts7SO15zHxaJCj+s4Dkc9l7N7Y+d3aBd+/x8ZL0XJ7zswD5Ce61lS+58xjmTnBSvxkk026QX4QecHuZcLKmGEh5Rae9xVhisMwaP+DOHGnJlPQ+Id5OeiWw9aphtkDrD8Bcp9HFP6A8+XFRVZZHBY8l0pFRFRFK8AQ/ubj/oOe7ZYFSyxo+M6O9NdgWl/2XwXIVUdJJ1T9dBw9Y2UYFb24tBIuB9D1Q5vRtU/O7h6SQ2TlL6ke8msXPGX/bjoSgyaJ0lFziekm4NXiY5RU9dKqRQBz5EsGiWJlN//Pzt/SOVDe809YX0uyiApj4QeEl6i86djrjQfj0Gygfw110no/fxnn/zUYEnP7JDcILmYUMwpKontzsFzLFd2IDv46TTs269QM00lS8yT9DyvlVwcN7vbrznjqlHZx/PjPQO9h9C3/TptAZsPCgf3q5VxlhiJBHQa6u23BK7Co+9bymic6UxrSvuq9oisS/J88souIFEMX27OAdCTb4wnLcbCHihs+l65S09g1OmRZ8Oyc6YQHPGO0HuE6PC+SDmOvDfIavxsq+Pmx9RSApskuMFd39gjkieyT+SKTjNT7KZBXBvrfij4YastiXgkVNKmyvIxN4+7A0qkYXfy+3GlinRcYGow/AOWDhV/9H6OQMHX9903aXR+H+u7h0o39JkIOyj1MBRbeJ/CgHc+x5gXZGXquyONe+Xo7aHsRW80dwm6YzcE9je6967EUUfIJWd1EApFvtuWvRe44Hc/YCODO5JTznZ6yI3u6fqh0PWQaRtEwZkLUi9F+t9gWcDUTWMng4FgYU5QWPS9Cksa9ogf4PfTBEQcMjjnoWb+eeTxssyYuVTgmZNk75n2db1LpT24+DzbUR9Eef8OIrkt08kRo5RuUaL+H+CGXRUeyLr57ptPfvrznzUF7z4y3h0c/zoeZqQJbUgfaM74baWTADEIISEaz9MLdKc8s6M9zkFR9NwclcTsPst0RRjcOk0gboHPtbedSg3wLfM5WJcIN0qcDbz2SHON8cm9UEzQMJ3PbOwCriNgkXQ7OPRml+cgyMBzIccfL9x+qbSiJ0ViEXjYYlxD4OSbUbRRXRo7CgsY3c3s/TNk8kJq0SPYZ1oLOgHK+RTZVLTLTSEn51k2rDwtohjFCBItLq6FKrUHhx/D8rsMt9brm2so5LIyQzP5kByddsir8JjOqzGM5yV5tI/WRsFg6FCqUKd9F8S1yF16/zX9rZesJb5nQOmD9HGya+j31HSgWKeNd3MmjAI+uch/o3O6/o1b5x+qLqe/2V8Pm2B/eyC21b75qj4T3xD51f5Y8+vNbzR/svnTzZ9t/nzzF5u/3PzV5q83f7P5281vN3+n+Xu4b2BfvsiWfNbileJPFA/aGVCP84C+aHPke/pd4rVen+Hn/Zf8/sg9o8/N3PNlnkvI8SNvSN76BvzjWh1LJKUPPuGEYPcUiT7GNQERCdF6mZw+x10wR39lLf5Tt5cfhvd/0PzD5h83/6T5p80/a/558y+af9n8q+ZfN/+m+bfNv2v+ffMfmv/Y/KfmPzf/pfmvzX9r/nvzP5r/2fyv5n83/7f5veb/Nd8171HFNYVT3av2Lvua9uYFvce9du5n3ct9cWvoe9rqmRcyB2XoPOB4cs+xOPp5Vo17JPOqY6xzdEW/b+VndaXYl/yeb4wYVpVn3t0juY5Kqo98tpv+GJe7jZ/gE/Cuoz9PTUJprzYQp90NaNm03M3wise+HoGBEbTrWNQDiXnZZDyMJdUkei0rVbHwY3g3J7JD3/xho2nycw7NrzRfNH+0+bXmjzd/ovlTzZ9p/lzzF5q/1PyV5q81f6P5W81vNb/b/N3m7xfdTP1XL6dr8jmYz3M1nNh+p+NV+su+vM7TayveUvqivIxnLV4pb6iVn/lv5FF178mIiRoDL5yna/atyveoP37+s+LHETLHm0kawLbffis+x1NYBCfi53C1xPncz399Th5XvpGU9Rw6A9EYyJvMY0Tr/Zb/RueJhMkd1hIBeUjX8Pqq3wVdvF6wL8x+r2fg7NuWc75hVtrQZP/N9kup4enzZ3ZeyUP0v92TQx/Of3LocszE+7sclH0JAZaX6+bTnA3+tD6ByKrWbRa3Bp2Qg+S7B/G3PXcjlDDzKCc9auvp0D9BEsVlbMWaZB+1Jvskeya4MYwMKX1A0PBFzEW7Y9J8yjqOH2XQJ+2ZRm1X1kF7YjW4uSijHvPAVpC8oEbtUnnuqTyZWyN2cyCHkcJ5+QqmH+1UIbJgWabDW+9l0qwtolfJB5kVWpT9HnPQBvL7k/CYJ/nfkllJuVHilJbZ0X8iAcX2Fpw0qGxiw2x2HoLmAov/aL/2IM1l76lbzM4gnSIgtbVTpPcgiXRpOM9HfOozZwOwXuau8+gCQSvh7BaydVrRzztpRkT25T8+qqCeMgZ1hHFeWwyuYWXhp5Ncmnlu9L3U3SNakCoGiYUIUyFr3xz6RU3fle2Aef7EDdavnCe44IiiLgKFe9omSX3R7E+c5D7ts6U4RaGhRe/E+rfcIYkvoGOXZQ/JbVRyoxVu+2PfdAxaFI/q5rIGEZe88VfnJUGwfIeQL24wdncybM2abJxN8sPnQ6EXCytMToZakDbkw8gZO5BZH3CdJxMzzofvv+ZnJScRV+108kocDfV0wzdJJ0wkXviKl0NekCuX5wTZmntYaY8pF1OTwCNHf7jhB3K6Qt5f7tP+QmsCBukb6uoWOX4ZOeYAghQ/O/tJXR8cyQ/zY9koeSRNF8Q4VAR5juZcghuRcfu52ziQY/FZ0pG91Iwywe7C1UzeL80mZSYkaRfj/wc0XtNpAAAAeJylkz1v01AUhl87Tem3oOrAgMQVS1NUx0lUoZItrUTVobRKpbAgRbZ1lZo6drFvolZiRvwMxM7cn8DIyMzOwMiEeH1zaEUpCNFYjp977vl47/ExgHtODw4mv1UcCDtYwTthF7fwQbiCVee+8BRWnJfCVSw4b4Wnaf8kPIOq8014FlV3Tnged9wN4QXyC+FFPHa/Ci+hXnkjvIyVymdWd6ZmuXpqlZTsoIZTYZcR58IV+nwUnkLN2RGu4q7zWnia9vfCM5hzvgjPkr8Lz+OBe1t4gfxEeBG5+0p4Cc8rD4WXUaucYx8jGCSIkUJDUeOYz4i2DDnWaCnXOQp6ZPRRCHHG/x7XCXe6WOeqhYa9sT8ySZxqVRvryGT5mhrrvIizVIVnqhcnuruuWo0WHZ8xNuQ7TFi/YIZdbGHP5t1Bh89N9qqJR3TU4UEyKtTu1p7q7XTU5mmT1i7DBwxNEFAcunowSgLCpaz2P5do84gt1Hl7FwfxuNNkulJy+zoJ7XGr3vLKs3jN5o2P80cBf6vSlyp9qdL/rUqfVfqs0p9UuWzO5GDXWY745g1O2BSfVzkVhikbtNftRAzoYsxJ2/fj1DQbR/UsH/xv1DZ3NF+gYcTYTt82vYe8ykkr29ixeXPuh3ZOJzPo4ZCZAxvdsbN7bKM3WK1hm1/WL6c2leyZpYQlcx2YeKzVdjYcZmmhOsbkcTgynFHv8CjIdSeJj7XaqDfUbmp0ngblVpBcPWN0RXv0i/Kfp/atuoj7pVXz9u3345EC8kSxf9GdSORFE3Vlm/wkjnRa6MIPz7wi8KnMv+m8/QDiperiAHicXZcFdNvYEoZnRobGScrtMjNHFNvLduK0KaXbNltYVGzFVmtbri01bZeZmZmZmZmZuszM+Jbxybojx7s+x/5H0r3zzVwaGQj8z98rIOcJwn8+0kjvJqGEIQxjBKM4Alswhq3Yhu04EkfhaByDY3EcjscJOBFXwpVxFVwVV8PVcQ1cE9fCtXEdkCAEYYhAFEZAC8SgFdqgHUbCKBgNY2AsjIPxMAEmwkqwMqwCq8JqsDqsAWvCWrA2rAPrwnqwPmwAG8JGsDFsApvCZrA5bAFbwlbQATIooIIGOnRCHBKQhK1hG9gWtoPtYQfYEVKQhi7ohgz0wCSYDL0wBabCNJgOM6APZsJOMAtmwxzoh51hLsyD+bAAdoFdYTfYHfaAPcHAdXE9uAgOhkPgHjgVPoND4Vg4Cs6BK+BiXB+OhDfgIDgJN8AN4Rg4DQ6Hh+Ad3AjOhSvhJ/gRfoYL4Rp4Ah6Da2EAsnC8N85PgQmPw5PwHDwNz8Cz8DkMwkvwPLwA10EevoMT4BVYAS9DAb6Er+EIWAgWLIISFKEM54MNi6ECVaiBCw4sgSH4ApbCclgGe8E+sDfcDhfAfrAv7A8HwFfwDdyJG+MmuCluhpvjFvAX/I1b4lbYgTL8g4AKqqghoo6dGMcEJnFr3Aa3xe1we9wBd4Rf4TdMYRq7sBsz2IOTcDL24hScitNwOs7APpwJv8OruBPOwtk4B/txZ5yL83A+LsBdcFfcDXfHPeAD+BD3RAMHMIs5NHEQ81hACxfiIixiCctwPdyANlZwMVaxhg66uASHcCn8AX/CR/AxLsPluBfujfvgvrgf7o8H4IF4EB6Mh+CheBgejkfgkXgUHo3H4LFwFx6Hx+MJeCJ8Ap/iSXApnoyn4Kl4Gp6OZ+CZeBaejefguXgeno8XwGvwPl4Ib8Jb8Da8B6/Du3gRXoyX4KV4GV6OV+CVeBVejdfgtXgdXo834I14E96Mt+CteBvejnfgnXgX3o334L14H96PD+CD+BA+jI/go/gYPo5P4JP4FD6Nz+Cz+Bw+jy/gi/gSrsCX8RV8FV/D1/ENfBPfgrPwbXwH38X38H38AD/Ej/Bj/AQ/xc/wc/wCv8Sv8Gv8Br/F7/B7/AH/hz/iT/gz/oK/4m/4O/6Bf+Jf+Df+Q0BIRBKFKEwRitIIaqEYtVIbtdNIGkWjaQyNpXE0nibQRFqJVqZVaFVajVanNWhNWovWpnVoXVqP1qcNaEPaiDamTWhT2ow2py1oS9qKOkgmhVTSSKdOilOCkrQ1bUPb0na0Pe1AO1KK0tRF3ZShHppEk6mXptBUmkbTaQb10UzaiWbRbJpD/bQzzaV5NJ8W0C60K+1Gu9MetCcZNEBZypFJg5SnAlm0kBZRkUpUJpsqtJiqVCOHXFpCQ7SUltFy2ov2pn3gRriJ9qX94Fa4DR6m/eFmuAUeoQPgQHgQDoOr6EB4lA6ig+kQuBfuo0PpMDqcjoC76Ug6io6mY+hYOo6OpxPoRDqJTqZT6FQ6jU6nM+hMOovOpnPoXPiFzqPz6QK6kC6ii+kSOBrOo0vpMrqcrqAr6Sq6mq6ha+k6up5uoBvpJrqZbqFb6Ta6ne6gO+kuOJ3uhsvpHjgTzoBv6V66Dy6BE+l+egDOhsvgOHoQToZT6CF6mB6hR+kxepyeoCfpKXqanqFn6Tl6nl6gF+klWkEv0yv0Kr1Gr9Mb9Ca9RW/TO/QuvUfv0wf0IX1EH9Mn9Cl9Rp/TF/QlfUVf0zf0LX1H39MP9D/6kX6in+kX+pV+o9/pD/qT/qK/6R8JJJQI7pAkKSSFpYgUlUZILVJMapXapHZppDRKGi2NkcZK46Tx0gRpYtQtWx3eh7WbVWZVWFVWjVVn7WSNsyZYk6wp1jRrF2uGtUeozHyZuTJzZebKzJWZKzNXZq7MXJm5MnNl5srMlTk/mfky8+OsKY4jxe3SHEea40gno6mSka3a5aghNJIaqJpLzIjhSzRl5+2yuShqCG3tylrVrFsaLJpLW7PDdqwrZztGNmuWnVi2YUa6s0bdZU5It+ffcKIZBpoMzAig6UssM+zIbJjRDIdhCo1khEfTl9ZJTUHlm4KaNOwrP+yrnrisKKxq6+Sm3oVhOzR5wKiGCt5PpNexijkzYvkS7eX4LY6/V8RviQHr5UgtodQ7hayFrVOaGAuHbRGD2skab1uUr5pmuWiUc1Y2Ms3Iuo4ZKfrCTdKsXZFpYgiKvoSmefmFit5PZIboVW7qpemsnZEZoldZDFzZqNg1p2pXCqaUKecls5yP9nF6NqfXJ9KzfWnvK7jlvFF1S0XDddrt5qvILEGuNpF1Tk2PR2YJclXIbNG25kvr7Kbhqf13eDp5qjrVyBzR2RE5z6lPkFOfoH4xQa6YoH7OwOUM+kUGri/h/qpVzofd+m97/7+ycZuvov08kS6v/LlNMQ412fOb7GXDdmSByHC5L7EFw0txecMMF+1yvha2C3a1LHJMx2OpemSik9Ewo6mMUMMUI9ZXKxq1grDtYdv3ovDpofDpofDpofDpoejiVFLi3K5LtFPjmbBjl+1ae84yq2bNqvlXsVSxUjB8s8Uo245ZNC2jLVOpWV74/u0RGYef99pstfWVrPrgi4v+psaxvpKZF43GWF7zf7HCPiuUNh0jPMkolQwRWFKLMi+0wHskebzwnIJnherA8FSjUjG87VIayBk03aUZLs2zohwBzbSkWQU7PNvKlwxpjuFGORppZsGSurzvzJolMKlkW29TRKO4YXAdMxoD0WY2p28G6VtB+uPdf3cVyfn9QwP15PL15MI5s+gYUfYVWl5Prf7Q8VOrOwsv8lMr+qmJINNdVHZpqeVtUD8/qVqwI7V6cnLYF8nxcmS+VPHyy3pf7zJs1we+rXnMR/0nzDa7edbc5lmzG7MmwugWlUXtEZVM44qrcaXVuNJqXGm1jqCdztrJGmdNsCZZU6xp1i7WbtYMq6h0GldcjSuuxhVX44qrccXVuOJqXHE1rrga7xmN94zGe0bjPaNxxdW44mpccTWuuJrCfIX5XGA0hfkK8xXmK8xXmK8wX2G+wnyF+QrzFeYrzFeYrzJfZb7KfJX5KvNV5nPR0VTmq8xXma8ynyuOpjJfZb7KfJX5GvM15mvM15ivMZ9rkaYxX2O+xnyN+RrzNeZrzNeYrzFfY77OfD7bNJ35OvN15uvM58qk6czXma8zX2e+znyd+TrzdebrzE8yPyn4elo813mf6N18v1thVVk1Vp21kzXOmmBNsqZY06xdrN2sAVfEpWeYn2F+hvkZ5meYn2F+hvkZ5meYn2F+hvk97LeH/faw3x72K84FuVvsH7lbrHdPE5G5+arh1eMhIXNFnRzypWVucBS1DAWW3y+T7InMFx2W+VK/q3jv2bFBK+9WzZxXAfmW3u6Wc2a1lrW92wPF9sWuV7Pqpb9aM3PcpkeoEo+UrLL/ImJmvWNQ3FX1FnNp1jtzvd58J8PK/cRiVzrEolI64oHqrJ2scdYEa5I1xZpmZb8JmVVhVVnZf4L9J9h/gv0n2H+C/SfYfyIdKlpVI1Ixa15FEfdSqVDGrdr+hSxOY0UWp6SnnS1mzfHebB0eKlnsK0/lEd5rkFOwqrkWZ8j2jRo/YidiS3kaZ02wJllTLZ4L08oXnEKbU/DedIVdax20lgR2W82bqTJftBjVqj1UNAedqG+5lZiv1fpj8TBnD5WFNeAF1cLNcuW2hjVQM0eYpYqzzBuDqPfyUuI/AYoiaoGnyZhddQr1Fz2j2GaVnfpSyTqW94ZsLnatJUbRLGfFilOSIhm1oyNcsN2a2e6trKKdt7JG0Xs3itU7e+uz6FQa5oAzYnaPXP9P2lE3ZDY6GoYaGEpgaIGRCIxkYHQGRjwwdDa0wI8SdNcDhB54VgM/SnBHCdoogR89CFULGqtBGErDCOhKEI/aMIJHWoCQG9DAsxKEqjUaB561IB6tkVfgWQu6640EG3408Z+/MlC0s4v8GdK9zeRNfv06LO4WB4VWHb52vLfmnBn2f6O5Rb62DFrFondu2Esjk71BiquRyXJC14Tockw8rnrLI+pULSPvVoRW+TpXFlocjNT/DBRNv6OqtljlJQOu19epW+JRzK6YZb5ZK1neOjeyprf+ljQupJpbjgx6/5SLZqj+E65VvBhD2aI7EC6YhgfNWUbJO7laS26N16A5sskOjrC42OE9afF+5ql/xPT09HT/HzOHyp8AAAAAAf//AAJ4nGNgZGBg4AFiMQY5BiYGRgZGZl4gyQIUYQJiRggGAAl9AF8AAAABAAAAANqSA/cAAAAA0kcrFQAAAADb2x1geJwNjssug0EYhp//+1t/0i8ldQHqlFJnW9QhEjdgWxULgkq0NkiLUiqpQ1qHCLGwx96luBveeTLvPPNmMjMYEGgaHSwHNWW39gGuxkiIUN6pmaCXLq19IsEA/fIMg8QZZkieJZtyRhhJO6PCGRMxxkXEhIgxxaR8hmndOisi5oSTI9ftzAtngYUeZ4lFeZ68+jXhFCio32BdXqWq/kQ4p5yqr3EmPxcRF8JpUNffmlzLW9wqH2ireeJRrz8L55UX5ZsI+eBd/iOcX+FBJSgpTwK9YiuWIbBNW5Vv2xZx27Ed+a7tptyKVky77duempKViKxsZfmhHRDasR0Rs7pV5Fd2KW9aQzfc2I3O3NudsmUtNZ/Wln/ZF7EwYd94mAyT+J8G/APsvzqUAAAA) format("woff");
+}
+
+:root {
+  /* Boot values = 2023 INFO_OVERFLOW (the initial year); paletteEngine
+     re-targets these on every year switch / invert toggle. */
+  --paper: #DCEDF2;
+  --ink: #0A1A22;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: var(--paper);
+  color: var(--ink);
+  /* One material everywhere: the VGA 8×16 bitmap at its native 16px.
+     line-height 1 — the glyphs carry their own leading. */
+  font-family: "IBM VGA", "Courier New", Courier, monospace;
+  font-size: 16px;
+  line-height: 1;
+}
+
+button {
+  font-family: inherit;
+  font-size: inherit;
+  line-height: inherit;
+  background: none;
+  border: none;
+  border-radius: 0;          /* square corners everywhere */
+  color: inherit;
+  cursor: pointer;
+  padding: 0;
+  text-transform: uppercase;
+}
+
+/* Bitmap font: no synthesized bold/italic — emphasis is reverse video,
+   underline or brightness (opacity steps), the DOS way. */
+h1, h2, h3, strong, b { font-weight: 400; }
+strong { text-decoration: underline; }
+
+[hidden] { display: none !important; }
+
+/* ── Character frame chrome (top/bottom rows are REAL glyph rows; the
+     left/right verticals are 1px ink hairlines aligned to the corner
+     glyph strokes — the sanctioned fallback) ──────────────────────── */
+.tui-line {
+  white-space: pre;
+  overflow: hidden;
+  height: 16px;
+  user-select: none;
+}
+.tui-panel {
+  background: var(--paper);
+  color: var(--ink);
+  display: flex;
+  flex-direction: column;
+}
+.tui-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  /* the │ stroke of the VGA corner glyphs sits ~3px into the 8px cell */
+  margin: 0 4px 0 3px;
+  border-left: 1px solid var(--ink);
+  border-right: 1px solid var(--ink);
+}
+/* double-frame panels get double verticals to match ╔═╗ rows */
+[data-frame="double"] > .tui-body {
+  margin: 0 3px 0 2px;
+  border-left: 3px double var(--ink);
+  border-right: 3px double var(--ink);
+}
+/* inner horizontal rules are character rows too (clipped dash run) */
+.tui-rule {
+  height: 16px;
+  overflow: hidden;
+  white-space: pre;
+  margin: 8px 0;
+  user-select: none;
+}
+.tui-rule::before {
+  content: "────────────────────────────────────────────────────────────";
+}
+
+/* ── Shared [ BRACKET ] button language ──────────────────────────── */
+.tui-btn { white-space: pre; }
+.tui-btn:hover { text-decoration: underline; }              /* hard cut */
+.tui-btn.active {
+  background: var(--ink);
+  color: var(--paper);           /* reverse video = selected */
+  text-decoration: none;
+}
+
+/* ── Render stage / glyph host ───────────────────────────────────── */
+#stage { position: fixed; inset: 0; z-index: 1; background: var(--paper); }
+
+/* touch-action on the HOST: the .glyph-output <pre> is rebuilt by the
+   runtime on every rerender, so rules must live on a stable ancestor. */
+#globe-host {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  touch-action: none;
+}
+#globe-host .glyph-output {
+  font-family: "IBM VGA", "Courier New", monospace !important;
+  font-size: 16px !important;
+  line-height: 1 !important;
+  color: var(--ink);
+  cursor: grab;
+  touch-action: none;
+}
+#globe-host .glyph-output:active { cursor: grabbing; }
+
+#loading {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-transform: uppercase;
+  color: var(--ink);
+  animation: tui-blink 1.2s step-end infinite;
+  pointer-events: none;
+}
+/* CRT cursor blink: hard two-state, no easing */
+@keyframes tui-blink {
+  0%, 49.9% { opacity: 1; }
+  50%, 100% { opacity: 0.25; }
+}
+
+/* ── Title strip (top-left) ──────────────────────────────────────── */
+#ui-title {
+  position: fixed;
+  top: 16px;
+  left: 24px;
+  z-index: 10;
+  pointer-events: none;
+  user-select: none;
+}
+#ui-title h1 {
+  margin: 0;
+  display: inline-block;
+  font-size: 16px;
+  text-transform: uppercase;
+  background: var(--ink);        /* DOS title bar: reverse video */
+  color: var(--paper);
+  padding: 0 8px;
+}
+#ui-title .subtitle {
+  margin: 4px 0 0;
+  font-size: 16px;
+  max-width: 62ch;
+  color: var(--ink);
+  opacity: 0.6;
+  text-transform: uppercase;
+}
+
+/* ── Info button (top-right) ─────────────────────────────────────── */
+#info-btn {
+  position: fixed;
+  top: 16px;
+  right: 24px;
+  z-index: 10;
+}
+#info-btn:hover {
+  background: var(--ink);
+  color: var(--paper);
+  text-decoration: none;
+}
+
+/* ── Left data panel ─────────────────────────────────────────────── */
+#data-panel {
+  position: fixed;
+  top: 80px;
+  left: 24px;
+  z-index: 10;
+  width: 320px;                              /* 40 character cells */
+  max-height: calc(100vh - 216px);
+}
+/* Short viewports: the flex column shrinks .tui-body to keep the bottom
+   frame row at max-height, so the body must scroll or its content bleeds
+   straight through the frame. DOS-style ink-block scrollbar. */
+#data-panel > .tui-body {
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--ink) var(--paper);
+}
+#data-panel > .tui-body::-webkit-scrollbar { width: 8px; }
+#data-panel > .tui-body::-webkit-scrollbar-thumb { background: var(--ink); }
+#data-panel > .tui-body::-webkit-scrollbar-track { background: var(--paper); }
+
+.panel-tabs {
+  display: flex;
+  gap: 8px;
+  padding: 8px 8px 0;
+  flex: none;
+}
+.tab-btn { opacity: 0.5; }
+.tab-btn:hover { opacity: 1; }
+.tab-btn.active { opacity: 1; }
+
+.panel-body {
+  padding: 8px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--ink) transparent;
+}
+.panel-body::-webkit-scrollbar { width: 6px; }
+.panel-body::-webkit-scrollbar-thumb { background: var(--ink); }
+
+/* stats */
+.stat-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+.stat-label {
+  text-transform: uppercase;
+  color: var(--ink);
+  opacity: 0.55;
+}
+.block-label { display: block; margin-bottom: 8px; }
+.stat-growth { text-transform: uppercase; color: var(--ink); }
+.stat-big {
+  margin: 8px 0;
+  font-size: 32px;               /* 2× cell — the only other size */
+  color: var(--ink);
+}
+.stat-unit { font-size: 16px; color: var(--ink); opacity: 0.55; }
+
+/* character charts (bars / meter / shares) */
+.tui-chart { white-space: pre; margin: 2px 0; }
+.tui-chart.scale { opacity: 0.55; }
+
+/* annual mini bar chart: █ columns, active year reverse-video */
+.volume-chart {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  margin-top: 8px;
+}
+.vol-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 2px 3px 0;   /* ink surround so the reverse-video bar reads */
+}
+.vol-bars { white-space: pre; }
+.vol-year { opacity: 0.55; }
+.vol-col:hover .vol-year { text-decoration: underline; opacity: 1; }
+.vol-col.active {
+  background: var(--ink);
+  color: var(--paper);
+}
+.vol-col.active .vol-year { opacity: 1; }
+
+/* daily saturation meter (character track built by ui.js) */
+.daily-meter { margin-top: 8px; }
+
+/* platform share: SHEIN @@@@···· 65% lines built by ui.js */
+.share-legend {
+  margin-top: 8px;
+  color: var(--ink);
+  opacity: 0.75;
+  white-space: pre;
+}
+
+/* narrative */
+.context-text {
+  margin: 8px 0;
+  color: var(--ink);
+}
+.event-text {
+  margin: 0;
+  color: var(--ink);
+  opacity: 0.75;
+}
+.event-text::before { content: ">> "; }
+.route-count {
+  margin-top: 8px;
+  text-transform: uppercase;
+  color: var(--ink);
+  opacity: 0.55;
+}
+.sources {
+  margin-top: 8px;
+  color: var(--ink);
+  opacity: 0.65;   /* low-key, game-style secondary line */
+}
+
+/* ── Timeline (bottom center) ────────────────────────────────────── */
+#timeline {
+  position: fixed;
+  bottom: 40px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10;
+  width: max-content;
+  max-width: calc(100vw - 16px);
+}
+.timeline-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px;
+}
+#play-btn.playing {
+  background: var(--ink);
+  color: var(--paper);
+  text-decoration: none;
+}
+#timeline-years { display: flex; gap: 8px; }
+.year-btn { opacity: 0.6; }
+.year-btn:hover { opacity: 1; }
+.year-btn.active { opacity: 1; }
+
+.view-toggle {
+  display: flex;
+  gap: 8px;
+  padding-left: 8px;
+  border-left: 1px solid var(--ink);
+}
+.view-btn { opacity: 0.5; }
+.view-btn:hover { opacity: 1; }
+.view-btn.active { opacity: 1; }
+
+/* ── Footer strip: one character line ────────────────────────────── */
+#ui-footer {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 9;
+  padding: 4px 16px;
+  text-align: right;
+  white-space: pre;
+  overflow: hidden;
+  color: var(--ink);
+  background: var(--paper);
+  border-top: 1px solid var(--ink);
+  pointer-events: none;   /* never block dragging near the bottom edge */
+  user-select: none;
+}
+
+/* ── INFO & CONTEXT modal — DOS dialog, hard-cut open/close ──────── */
+#info-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: var(--paper);   /* full print-page takeover — strict duotone */
+  visibility: hidden;         /* hidden = unfocusable (aria-hidden honest) */
+}
+#info-modal.active { visibility: visible; }
+
+.modal-box {
+  position: relative;
+  width: 100%;
+  max-width: 760px;           /* 95 character cells */
+  max-height: 86vh;
+}
+.modal-scroll {
+  overflow-y: auto;
+  padding: 16px 24px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--ink) transparent;
+}
+.modal-scroll::-webkit-scrollbar { width: 6px; }
+.modal-scroll::-webkit-scrollbar-thumb { background: var(--ink); }
+
+/* [X] sits ON the double frame line, DOS-dialog style */
+#modal-close {
+  position: absolute;
+  top: 0;
+  right: 16px;
+  z-index: 1;
+  background: var(--paper);
+}
+#modal-close:hover {
+  background: var(--ink);
+  color: var(--paper);
+  text-decoration: none;
+}
+
+.modal-sub {
+  margin: 0 0 16px;
+  text-transform: uppercase;
+  color: var(--ink);
+  opacity: 0.55;
+}
+
+.modal-columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 32px;
+}
+.modal-col h3 {
+  margin: 16px 0 8px;
+  padding-bottom: 4px;
+  text-transform: uppercase;
+  color: var(--ink);
+  border-bottom: 1px solid var(--ink);
+}
+.modal-col h3:first-child { margin-top: 0; }
+.modal-col p {
+  margin: 0 0 12px;
+  color: var(--ink);
+}
+.modal-col ul {
+  margin: 0 0 8px;
+  padding: 0;
+  list-style: none;
+  color: var(--ink);
+}
+.modal-col li {
+  position: relative;
+  padding-left: 16px;
+  margin-bottom: 8px;
+}
+.modal-col li::before {
+  content: "*";
+  position: absolute;
+  left: 0;
+  color: var(--ink);
+}
+
+.modal-foot {
+  margin-top: 16px;
+  padding-top: 8px;
+  border-top: 1px solid var(--ink);
+  text-align: center;
+  color: var(--ink);
+  opacity: 0.65;
+}
+
+/* ── Narrow screens: simple stacking ─────────────────────────────── */
+@media (max-width: 760px) {
+  #ui-title .subtitle { max-width: 40ch; }
+  #info-btn { top: 16px; right: 16px; }
+  #data-panel {
+    top: 88px;
+    left: 16px;
+    width: min(304px, calc(100vw - 32px));   /* 38 cells */
+    max-height: 42vh;
+  }
+  #timeline { bottom: 28px; }
+  .timeline-row { flex-wrap: wrap; justify-content: center; }
+  #ui-footer { text-align: center; }
+  .modal-columns { grid-template-columns: 1fr; gap: 8px; }
+  .modal-scroll { padding: 8px 16px; }
+}
+
+/* ── Scanline effect ─────────────────────────────────────────────────
+   Copied verbatim from the 1bit game's main.css (#scanlines); only the
+   overall opacity is lowered for the paper-white ground. Its faint RGB
+   tints are game-native and exempt from the two-color rule.
+   z-index 5: above the scene (#stage z 1), below all UI chrome (z 9+). */
+#scanlines {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background:
+      linear-gradient(rgba(18, 16, 16, 0) 50%,
+          rgba(0, 0, 0, 0.25) 50%),
+      linear-gradient(90deg,
+          rgba(255, 0, 0, 0.06),
+          rgba(0, 255, 0, 0.02),
+          rgba(0, 0, 255, 0.06));
+  background-size:
+      100% 4px,
+      6px 100%;
+  pointer-events: none;
+  z-index: 5;
+  opacity: 0.35;
+}
+
+/* ── Entry panel (double-frame title card, dismissed by first click) ── */
+#enter-panel {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+.enter-box {
+  width: max-content;
+  max-width: calc(100vw - 48px);
+  text-align: center;
+}
+.enter-body { padding: 16px 24px; }
+.enter-box h1 {
+  margin: 0 0 16px;
+  font-size: 32px;
+  text-transform: uppercase;
+}
+.enter-sub {
+  margin: 0 0 16px;
+  text-transform: uppercase;
+  opacity: 0.65;
+}
+.enter-controls {
+  margin: 0 0 16px;
+  padding: 0;
+  list-style: none;
+  text-transform: uppercase;
+}
+.enter-controls li { margin-bottom: 8px; }
+.enter-note {
+  margin: 0;
+  text-transform: uppercase;
+  animation: enter-blink 1s step-end infinite;   /* CRT cursor: hard blink */
+}
+@keyframes enter-blink {
+  0%, 49.9% { opacity: 1; }
+  50%, 100% { opacity: 0; }
+}
+</style>
+</head>
+<body>
+<!-- ════════════════════════════════════════════════════════════════════
+     CHINA-EU FLOW ASCII · UI shell (static <body> markup)
+     Full TUI: every panel carries .tui-top/.tui-bottom character frame
+     rows (populated by tuiRefreshFrames() in ui.js from data-frame /
+     data-frame-title). Scene host is #globe-host — scene.js mounts the
+     glyph renderer there. ui.js queries every element below by id; the
+     dynamically populated hosts are #volume-chart and #timeline-years.
+     ════════════════════════════════════════════════════════════════════ -->
+
+<!-- ── Render stage (behind all UI chrome) ─────────────────────────── -->
+<div id="stage">
+  <div id="globe-host">
+    <div id="loading">INITIALIZING ASCII EARTH ▓▓▓░░░</div>
+    <script>
+      // The module script's only external dependency is the esm.sh CDN import.
+      // If it fails (offline / transient CDN error) the module never runs and
+      // the loading line would sit there forever — surface the failure instead.
+      // The module clears this timer as its first statement, so a slow-but-
+      // successful load (>15s) never triggers the failure path.
+      window.__cdnFailTimer = setTimeout(function () {
+        var el = document.getElementById("loading");
+        if (el) {
+          el.textContent = "FAILED TO LOAD glyphcss FROM esm.sh — CHECK NETWORK, THEN RELOAD";
+          // The entry card would occlude the centred failure line — drop it.
+          var enter = document.getElementById("enter-panel");
+          if (enter) enter.remove();
+        }
+      }, 15000);
+    </script>
+  </div>
+</div>
+
+<!-- ── Scanline overlay (game-native; above scene, below UI) ─────────── -->
+<div id="scanlines"></div>
+
+<!-- ── Entry panel (double-frame title card; click anywhere to enter) ── -->
+<div id="enter-panel">
+  <div class="enter-box tui-panel" data-frame="double">
+    <div class="tui-top tui-line" aria-hidden="true"></div>
+    <div class="tui-body">
+      <div class="enter-body">
+        <h1>CHINA-EU E-COMMERCE FLOW</h1>
+        <p class="enter-sub">DEFLATION EXPORT MONITOR &middot; SYMBIOSIS</p>
+        <ul class="enter-controls">
+          <li>[DRAG] ORBIT</li>
+          <li>[SCROLL] ZOOM</li>
+          <li>[2020&ndash;2025] TIMELINE</li>
+          <li>[I] INVERT</li>
+        </ul>
+        <p class="enter-note">CLICK TO ENTER</p>
+      </div>
+    </div>
+    <div class="tui-bottom tui-line" aria-hidden="true"></div>
+  </div>
+</div>
+
+<!-- ── Top-left title strip ─────────────────────────────────────────── -->
+<header id="ui-title">
+  <h1>CHINA-EU E-COMMERCE FLOW</h1>
+  <p class="subtitle">ASCII LOGISTICS MONITOR &middot; DEFLATION EXPORT &middot; SHEIN / TEMU PARCEL FLOWS 2020&ndash;2025</p>
+</header>
+
+<!-- ── Top-right info button ────────────────────────────────────────── -->
+<button id="info-btn" class="tui-btn" type="button">[ INFO ]</button>
+
+<!-- ── Left data panel ──────────────────────────────────────────────── -->
+<aside id="data-panel" class="tui-panel" data-frame="single" data-frame-title="CN-EU MONITOR">
+  <div class="tui-top tui-line" aria-hidden="true"></div>
+  <div class="tui-body">
+    <div class="panel-tabs" role="tablist">
+      <button id="tab-annual" class="tab-btn tui-btn active" type="button" role="tab" aria-selected="true" aria-controls="pane-annual">[ ANNUAL ]</button>
+      <button id="tab-daily" class="tab-btn tui-btn" type="button" role="tab" aria-selected="false" aria-controls="pane-daily">[ DAILY ]</button>
+    </div>
+
+    <div class="panel-body">
+      <!-- ANNUAL metric pane -->
+      <section id="pane-annual" role="tabpanel">
+        <div class="stat-head">
+          <span class="stat-label">TOTAL ANNUAL VOLUME</span>
+          <span id="stat-growth" class="stat-growth">&mdash;</span>
+        </div>
+        <div class="stat-big"><span id="stat-volume">&mdash;</span> <span class="stat-unit">PKG</span></div>
+        <!-- six-year █ character columns, generated by ui.js -->
+        <div id="volume-chart" class="volume-chart"></div>
+      </section>
+
+      <!-- DAILY metric pane -->
+      <section id="pane-daily" role="tabpanel" hidden>
+        <div class="stat-head">
+          <span class="stat-label">DAILY AVG THROUGHPUT</span>
+          <span class="stat-growth">HIGH FREQ</span>
+        </div>
+        <div class="stat-big"><span id="stat-daily">&mdash;</span> <span class="stat-unit">PARCELS/DAY</span></div>
+        <div class="daily-meter">
+          <span class="stat-label block-label">LOAD INTENSITY</span>
+          <!-- [####|····|····|····] meter line built by ui.js -->
+          <div id="daily-meter-line" class="tui-chart"></div>
+          <div id="daily-meter-scale" class="tui-chart scale" aria-hidden="true"></div>
+        </div>
+      </section>
+
+      <div class="tui-rule" aria-hidden="true"></div>
+
+      <!-- Platform share (always visible; @/* character bars by ui.js) -->
+      <section class="share-block">
+        <span class="stat-label block-label">PLATFORM SHARE</span>
+        <div id="share-shein-line" class="tui-chart"></div>
+        <div id="share-temu-line" class="tui-chart"></div>
+        <div class="share-legend">@ = SHEIN   * = TEMU</div>
+      </section>
+
+      <div class="tui-rule" aria-hidden="true"></div>
+
+      <!-- Narrative (always visible) -->
+      <section class="context-block">
+        <span class="stat-label block-label">STRATEGIC CONTEXT</span>
+        <p id="year-desc" class="context-text"></p>
+        <p id="year-event" class="event-text"></p>
+        <div id="route-count" class="route-count"></div>
+        <div class="sources">SRC: <span id="year-sources"></span></div>
+      </section>
+    </div>
+  </div>
+  <div class="tui-bottom tui-line" aria-hidden="true"></div>
+</aside>
+
+<!-- ── Bottom timeline / transport controls ─────────────────────────── -->
+<div id="timeline" class="tui-panel" data-frame="single">
+  <div class="tui-top tui-line" aria-hidden="true"></div>
+  <div class="tui-body">
+    <div class="timeline-row">
+      <button id="play-btn" class="tui-btn" type="button" aria-label="Autoplay timeline">[ |&gt; PLAY ]</button>
+      <!-- year buttons generated by ui.js -->
+      <div id="timeline-years"></div>
+      <div class="view-toggle">
+        <button id="view-globe-btn" class="tui-btn view-btn active" type="button">[ GLOBE ]</button>
+        <button id="view-flat-btn" class="tui-btn view-btn" type="button">[ FLAT ]</button>
+        <button id="invert-btn" class="tui-btn view-btn" type="button" aria-label="Invert ink and paper">[ INVERT ]</button>
+      </div>
+    </div>
+  </div>
+  <div class="tui-bottom tui-line" aria-hidden="true"></div>
+</div>
+
+<!-- ── Footer: one character line ───────────────────────────────────── -->
+<footer id="ui-footer">@ = SHEIN &middot; * = TEMU &#9474; DATA: EUROSTAT &middot; EC &middot; IATA &middot; REUTERS &#9474; RENDERER: GLYPHCSS &#9474; DRAG=ORBIT SCROLL=ZOOM</footer>
+
+<!-- ── INFO & CONTEXT modal (DOS double-frame dialog) ───────────────── -->
+<div id="info-modal" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="modal-title">
+  <div class="modal-box tui-panel" data-frame="double" data-frame-title="CN-EU E-COMMERCE LOGISTICS : DATA INSIGHTS">
+    <div id="modal-title" class="tui-top tui-line"></div>
+    <button id="modal-close" class="tui-btn" type="button" aria-label="Close">[X]</button>
+    <div class="tui-body">
+      <div class="modal-scroll">
+        <p class="modal-sub">BACKGROUND &amp; METHODOLOGY</p>
+
+        <div class="modal-columns">
+          <!-- Column 1: trade background -->
+          <div class="modal-col">
+            <h3>TRADE BACKGROUND</h3>
+            <p>
+              In recent years, leveraging the <strong>&ldquo;De Minimis&rdquo; exemption</strong>
+              &mdash; where parcels valued under &euro;150 are exempt from customs duties &mdash;
+              Chinese e-commerce platforms like Shein and Temu have seen explosive growth
+              in the European market.
+            </p>
+            <p>
+              This <strong>&ldquo;Direct Injection&rdquo;</strong> model bypasses traditional bulk
+              import processes. Billions of small parcels fly directly from China&rsquo;s core
+              industrial hubs (Guangzhou, Shenzhen, Yiwu) to major European cargo hubs
+              (Liege, London, Frankfurt), reshaping global air freight capacity.
+            </p>
+          </div>
+
+          <!-- Column 2: sources + legend -->
+          <div class="modal-col">
+            <h3>DATA SOURCES</h3>
+            <ul>
+              <li><strong>European Commission</strong> &mdash; Customs Data, 2024</li>
+              <li><strong>Cargo Facts Consulting</strong> &mdash; Global Air Freight Analysis</li>
+              <li><strong>Reuters &amp; Financial Times</strong> &mdash; Market Reports</li>
+              <li><strong>IATA</strong> &mdash; Air Cargo Market Analysis</li>
+            </ul>
+
+            <h3>VISUALIZATION KEY</h3>
+            <ul>
+              <li><strong>@ HEAVY GLYPHS</strong> &mdash; Shein parcel flow (dense ink)</li>
+              <li><strong>* LIGHT GLYPHS</strong> &mdash; Temu parcel flow (sparse ink)</li>
+              <li><strong>PILLARS</strong> &mdash; logistics hubs; pillar height = hub volume</li>
+              <li><strong>ARCS</strong> &mdash; active China&ndash;EU air-freight routes</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="modal-foot">
+          Note: 2024&ndash;2025 figures include projections based on Q1&ndash;Q3 market trends.<br>
+          Font: &ldquo;WebPlus IBM VGA 8x16&rdquo; &mdash; The Ultimate Oldschool PC Font Pack by VileR (int10h.org), CC BY-SA 4.0
+        </div>
+      </div>
+    </div>
+    <div class="tui-bottom tui-line" aria-hidden="true"></div>
+  </div>
+</div>
+
+<script type="module">
+import { createGlyphOrthographicCamera, createGlyphScene } from "https://esm.sh/glyphcss";
+
+// The CDN import above resolved — cancel the inline 15s failure timeout so a
+// slow-but-successful load does not delete the entry panel / show FAILED text.
+clearTimeout(window.__cdnFailTimer);
+
+// ── LAND_GRID — baked 1° land/ocean bitmask (inlined; no runtime fetches) ──
+const LAND_GRID = {"cols":360,"rows":180,"bits":"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADg/wEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADA/v8/AOD//z8AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAD+///D/////5//AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPAH/j/+//////8PAAAAgB0AAHgAAAAAAD8AAAAAAAAAAAAAAAAAAAAAAAAAAOD//wP8//////8BAACAfx4AAAAAAAAAAP4AAAAAAAAAAAAAAAAAAAAAAAA4+I73//n///////8AAAAAfwAAAAAAAAAAAAAfAAAAAAAAAAAAAAAAAAAAAOAQACDwP4D///////8BAAAAPAQAAAAAAAAAAAAYAAAAAAAAAAAAAAAAAAAAADzAgPP5H8D//////38AAAAAAAAAAAAA4AEAAAD+DwAAAAAAAAAAAAAAAAAAAIC/g7PfBwAA/v////8AAAAAAAAAAADgBwAAwP//PwAA4B8AAAAAAAAAAAAAAAAMAAD8AgAA+P////8AAAAAAAAAAABwAAAA/P//AwAAAAAAAAAAAAAAAAAAAP8Ahvc5OwAA8P///38AAAAAAAAAAAAcAADg////34cHAAcAAAAAAAAAAAAAgN9/xzf8RwAA4P///z8AAAAAAAAAAAAPAB7g//////8fgB8AAAAA/j8AAAAAAO//B3f8/wsA4P///z8AAAAAAAAAAAAPAG////////8f2f8HAAAAAAD4HwAAAAD8H/D4/38A4P///xMAAAAAAPAHAAAAgN//////////////DwAAAAD+///h/4//H+/Bg/8BwP7//w8AAAAAwP8fAAAAj9///////////////88//v////////////////////////////////8A/P8cgEEAAAAAAAAAAAAAAAAA8P////////////////////////////////8D4AwAAGAAAAAAAAAAAAAAAAAAIP7///////////////////////////////9j4AAAABAAAAAAAAAAAAAAAAAAAf////////////////////////////////+DDwAAAAAAAAAAAAAAAAAAAAAAQID4///////////Pw/0DAP8HAMAfAACA//F//v////////////////////8/AAP4///////////BBPAHAP4HAAAAAADg//z///////////////////////9/AID///////////8AQ8ABAPwBAAAAAAD8P/7///////////////////////9fAMD//////////z8AwA8AAPgBAAAAAAD+H/7/////////////////////Of8BAID///z//////z8AwD8AAMABAAAAAAD+P/z///////////////////9/wH8AAAD8MwD//////x8AwH8MAAAAAAAAAAD+P2D///////////////////95cAAAAACAAwD8/////38AwP8eAAAAAAAAgAGcH/D//////////////////wEAOAAAAADADgDA/////38AgP8/AAAAAAAAwANAH/T//////////////////wAAfgAAAAAwAAAA//////8PgP8/AAAAAAAAwAFwD/7/////////////////PwAAfwAAAAAGAAAA//////8/wP//AAAAAAAAwAOwA/7/////////////////DwCAPwAAAIAAAAAA/v//////8///BwAAAAAAOAcgcP//////////////////HwAAHwAAAAAAAACA+P//////4///DwAAAAAAOA74/////////////////////wUADwAAAAAAAAAA8P//////4///DwAAAAAAGD///////////////////////wUAAwAAAAAAAAAA8P//////7///FwAAAAAAAB///////////////////////wUAAgAAAAAAAAAA0P//////////CAAAAAAAgOH//////////////////////w0AAAAAAAAAAAAAYP////////8xLAAAAAAAAPz//////////////////////wwAAAAAAAAAAAAAAP7//////38HfgAAAAAAgP///////////////////////wQAAAAAAAAAAAAAAP3///////8HUAAAAAAAAP7/////////////////////fwQAAAAAAAAAAAAAAP////////+XAAAAAAAAAPz///93/D/+////////////PwwAAAAAAAAAAAAAAP////////9/AAAAAAAAAPj//f9j/g/+////////////HwAAAAAAAAAAAAAAAP////////8MAAAAAAAAAPj/+P8B/Mf/////////////DwQAAAAAAAAAAAAAAP///////z8AAAAAAAAAcPzH8/8A8I//////////////Bx4AAAAAAAAAAAAAAP///////x8AAAAAAAAA+H+Aw/8AwA/+//////////9/AA8AAAAAAAAAAAAAAP///////x8AAAAAAAAA+D8Aj//w4R/8//////////8/AAAAAAAAAAAAAAAAAP///////wMAAAAAAAAA+B8wuE/+/z/+/////////98fAAMAAAAAAAAAAAAAAP///////wMAAAAAAAAA+A8wEMf//x/+/////////0cOAAMAAAAAAAAAAAAAAP7//////wEAAAAAAAAA+A8AAI7//x/8/////////wMOAAEAAAAAAAAAAAAAAP7//////wAAAAAAAAAA+AcABob//z/8/////////zccwAEAAAAAAAAAAAAAAPz//////wAAAAAAAAAAQOB/AAQ2/////////////x8c8AEAAAAAAAAAAAAAAPj//////wAAAAAAAAAAQPx/AAAA/////////////w8Y/gEAAAAAAAAAAAAAAPD/////fwAAAAAAAAAA4P8/AAAA/////////////w+EGwAAAAAAAAAAAAAAAMD/////HwAAAAAAAAAA8P9/AACA/////////////x/AAwAAAAAAAAAAAAAAAID/////DwAAAAAAAAAA+P//BwaA/////////////x/AAAAAAAAAAAAAAAAAAID9////BwAAAAAAAAAA/P//D3+E/////////////z9AAAAAAAAAAAAAAAAAAAD5////BwAAAAAAAAAA/P//f////////////////x8AAAAAAAAAAAAAAAAAAADy/x8GBgAAAAAAAAAA/P/////v/8///////////z8AAAAAAAAAAAAAAAAAAAD0/w8ABgAAAAAAAAAA/v////+//4///////////z8AAAAAAAAAAAAAAAAAAADu/wcADgAAAAAAAACA//////8f/x/+/////////x8AAAAAAAAAAAAAAAAAAACI/wcALAAAAAAAAADA//////8//z/g/////////w8AAAAAAAAAAAAAAAAAAACQ/wcACAAAAAAAAADg//////9//r+A/////////wcAAAAAAAAAAAAAAAAAAAAQ/wMAAAAAAAAAAADg//////9//n8cgP///////ycAAAAAAAAAAAAAAAAAAAAA/gMAAAAAAAAAAADw////////+P9/AP///////xEAAAAAAAAAAAAAAAAAAAAA/AMAHQAAAAAAAADw////////+P//APz/f///fxAAAAAAAAAAAAAAAAAAAAAA+AcAYAAAAAAAAAD4////////+f9/APz/B///BgAAAAAAAAAAAAAAAAAAAAAA/AccgAEAAAAAAADw////////8f9/AOD/B/5/AAAAAAAAAAAAAAAAAQAAAAAA+A8eADgAAAAAAADw////////4f8/AOD/Afw/BgAAAAAAAAAAAAAAAAAAAAAA8J8PAPwCAAAAAADw////////4/8fAOD/APw/AgAAAAAAAAAAAAAAAAAAAAAAgP8PAAAAAAAAAADw////////x/8HAOB/APx/ADAAAAAAAAAAAAAAAAAAAAAAAP4PAAAAAAAAAAD4////////h/8BAOA/APz/ADAAAAAAAAAAAAAAAAAAAAAAAID/AAAAAAAAAAD4////////j/8AAMAPAMD/ATAAAAAAAAAAAAAAAAAAAAAAAAD/AQAAAAAAAAD4////////nx8AAMAPAMD/ATAAAAAAAAAAAAAAAAAAAAAAAAD8AAAAAAAAAAD4////////vwcAAIAPAMD/AcAAAAAAAAAAAAAAAAAAAAAAAADgAQAAAAAAAAD4////////fwAAAIAPAMD8AQABAAAAAAAAAAAAAAAAAAAAAADAAAgAAAAAAADw////////f2AAAAAPAID4AUACAAAAAAAAAAAAAAAAAAAAAADAAe9zAAAAAADg/////////34AAAAPAEBwAAgAAAAAAAAAAAAAAAAAAAAAAAAAE+9/AAAAAADA/////////38AAAAXAEAgAAQCAAAAAAAAAAAAAAAAAAAAAAAAz///AAAAAACA/////////z8AAAASAMAAAIACAAAAAAAAAAAAAAAAAAAAAAAAyP//AQAAAACA/////////z8AAAAwAIAAAEAHAAAAAAAAAAAAAAAAAAAAAAAAgP//AwAAAAAA/v///////x8AAAAwAAADAAMBAAAAAAAAAAAAAAAAAAAAAAAAwP//fwAAAAAA/A/+/////x8AAAAAAAAHAAcAAAAAAAAAAAAAAAAAAAAAAAAAgP///wAAAAAAEAD8/////w8AAAAAADAGwAcAAAAAAAAAAAAAAAAAAAAAAAAAgP///wEAAAAAAADA/////wcAAAAAAGAG4AEAAAAAAAAAAAAAAAAAAAAAAAAA4P///wEAAAAAAADA/////wMAAAAAAMAM+AMAAAAAAAAAAAAAAAAAAAAAAAAA4P///wMAAAAAAADg/////wEAAAAAAIAL/gMQAAAAAAAAAAAAAAAAAAAAAAAA8P///wMAAAAAAADg////fwAAAAAAAIAH/vMQAAAAAAAAAAAAAAAAAAAAAAAA8P///wcAAAAAAADg////PwAAAAAAAAAP/gMAAQAAAAAAAAAAAAAAAAAAAAAA+P///38AAAAAAADg////PwAAAAAAAAAO/DmAAwAAAAAAAAAAAAAAAAAAAAAA+P///38BAAAAAADA////HwAAAAAAAAA+/DkA8gAAAAAAAAAAAAAAAAAAAAAA8P////8fAAAAAACA////DwAAAAAAAAA8wChE/gcAAAAAAAAAAAAAAAAAAAAA+P////8/AAAAAACA////BwAAAAAAAAA4AEAA8B8AAAAAAAAAAAAAAAAAAAAA+P//////AQAAAAAA////BwAAAAAAAAAwAEAAxD8NAAAAAAAAAAAAAAAAAAAA+P//////AQAAAAAA////BwAAAAAAAADAAQAAxP+AAAAAAAAAAAAAAAAAAAAA8P//////AQAAAAAA/v//BwAAAAAAAACAHwAAwH8ABAAAAAAAAAAAAAAAAAAA4P//////AQAAAAAA/v//BwAAAAAAAAAAQFYEAMcAAAAAAAAAAAAAAAAAAAAA4P//////AAAAAAAA/v//DwAAAAAAAAAAAAgBAIABMAAAAAAAAAAAAAAAAAAAwP//////AAAAAAAA/v//DwAAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAAgP////9/AAAAAAAA/P//DwAAAAAAAAAAAAAAAQQAAAAAAAAAAAAAAAAAAAAAgP////8/AAAAAAAA/v//HyAAAAAAAAAAAACAHwQAAAAAAAAAAAAAAAAAAAAAAP////8fAAAAAAAA/v//HyAAAAAAAAAAAADADwwAAAAAAAAAAAAAAAAAAAAAAP////8fAAAAAAAA////HzAAAAAAAAAAAADsDxwAAAAAAAAAAAAAAAAAAAAAAP7///8fAAAAAAAA////DzgAAAAAAAAAAAD/DxwAAAAA//////////////////////////////////////////////////////////9/AAAAAAAAAAAAAAAAAOD///8fAAAAAAAA////Ax8AAAAAAAAAAMD//z4AAABAAAAAAAAAAAAAAAAAAMD///8PAAAAAAAA////AB8AAAAAAAAAAMD//z8AAAAAAAAAAAAAAAAAAAAAAMD///8PAAAAAAAA/v9/AB8AAAAAAAAAAOD//38AAAAAAAAAAAAAAAAAAAAAAMD///8PAAAAAAAA/v9/AB8AAAAAAAAAAPz///8BAAEAAAAAAAAAAAAAAAAAAMD///8HAAAAAAAA/P9/gA8AAAAAAAAAgP////8BAAIAAAAAAAAAAAAAAAAAAMD///8DAAAAAAAA/P//gA8AAAAAAAAAwP////8DAAAAAAAAAAAAAAAAAAAAAMD//38AAAAAAAAA/P9/AA8AAAAAAAAAwP////8HAAAAAAAAAAAAAAAAAAAAAOD//x8AAAAAAAAA+P9/AAcAAAAAAAAA4P////8PAAAAAAAAAAAAAAAAAAAAAOD//w8AAAAAAAAA+P8fAAIAAAAAAAAAwP////8fAAAAAAAAAAAAAAAAAAAAAOD//wcAAAAAAAAA+P8fAAAAAAAAAAAA4P////8fAAAAAAAAAAAAAAAAAAAAAOD//wcAAAAAAAAA+P8fAAAAAAAAAAAAwP////8fAAAAAAAAAAAAAAAAAAAAAOD//wcAAAAAAAAA8P8PAAAAAAAAAAAAgP////8/AAAAAAAAAAAAAAAAAAAAAOD//wMAAAAAAAAA4P8HAAAAAAAAAAAAgP////8fAAAAAAAAAAAAAAAAAAAAAPD//wMAAAAAAAAA4P8HAAAAAAAAAAAAgP////8fAAAAAAAAAAAAAAAAAAAAAPD//wEAAAAAAAAAwP8DAAAAAAAAAAAAAP////8fAAAAAAAAAAAAAAAAAAAAAOD//wAAAAAAAAAAwP8BAAAAAAAAAAAAAP8D/P8PAAAAAAAAAAAAAAAAAAAAAPD/fwAAAAAAAAAAwH8AAAAAAAAAAAAAgP8A2P8HAAAAAAAAAAAAAAAAAAAAAPD/OwAAAAAAAAAAgAEAAAAAAAAAAAAAAAcA6P8HAAAAAAAAAAAAAAAAAAAAAPj/BwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAwP8DAAACAAAAAAAAAAAAAAAAAPj/BwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAP8DAAAEAAAAAAAAAAAAAAAAAPz/BwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAP8DAAAIAAAAAAAAAAAAAAAAAPj/AQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAGgAAAA4AAAAAAAAAAAAAAAAAPg/AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAcAAAAAAAAAAAAAAAAAPw/AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAYAAAAAAAAAAAAAAAAAPwHAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAOAAAAALAAAAAAAAAAAAAAAAAPwfAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAOAAAIADAAAAAAAAAAAAAAAAAPgHAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEAAAMABAAAAAAAAAAAAAAAAAPwHAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHAAAAAAAAAAAAAAAAAAAP4BAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHgAAAAAAAAAAAAAAAAAAP4BAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADAAAAAAAAAAAAAAAAAAAP4DAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAP8BAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAP8AAAAAAAAAAAAAAAAAAAAAAAIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAH4AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAH6AAwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPADAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACAAAAAAAAAAAAAAAAAAAAAAAAAAOAAAAAAAAAAAAAAAAAIAfAAAAAAAeeADADwAAAAAAAAAAAAAAAAAAAAAAAAAHAAAAAAAAAAAAAAAAAPD/AADA/////////z8AAAAAAAAAAAAAAAAAAAAAAAAHAAAAAAAAAAAAAAAAgP///wH4//////////8DAAAAAAAAAAAAAAAAAAAAADAfAAAAAAAAAAAAAADw8////wP+////////////AwAAAAAAAAAAAAAAAAAAAHA/AAAAAAAAAAA8//P//////+D/////////////HwAAAAAAAAAAAAAAAAAAAP5+AAAAAAAA5v////////////D//////////////38AAAAAAAAAAAAAAAAAAAB+AAAAAACA/////////////////////////////38AAAAAAAAAYAYA4ON/OPh/AAAAAADw/////////////////////////////x8AAAAAAADwv/MXgP////8fAAAAAADw/////////////////////////////wMAAAAAAPz///////////8HAAAAAAD+/////////////////////////////wAAAAAAAPz//////////z8AAAAAAP///////////////////////////////wAAAADA/////////////wEAAAAA8P///////////////////////////////wAAAACH////////////PwAAAPgA/////////////////////////////////wcAAAAcgP//////////fwAAAP4BwP//////////////////////////////HwAAAAAAAP7//////////wf8wD8AwP//////////////////////////////DwAAAAAA/v////////////8HAAD4////////////////////////////////HwAAAAAA+P//////////////4f///////////////////////////////////wAAAAAA/P///////////////////////////////////////////////////x8A3x8AAP7///////////////////////////////////////////////////8/AAAAgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"};
+
+// ============================================================================
+// data.js — merged dataset (plain JS fragment, no imports/exports)
+//
+// Sources:
+//   Prototype 1: "CHINA-EU E-COMMERCE FLOW.html"        (HUBS geometry/types,
+//                yearly volumes, growth, desc, sources, activeRoutes)
+//   Prototype 2: "Cross Border Logistics Visualization 3D.html"
+//                (hub weights, shein/temu platform shares, yearly events,
+//                 volumeMultiplier used for hub pillar scaling)
+// All numbers copied verbatim from the prototypes — nothing invented.
+// ============================================================================
+
+// --- Hubs -------------------------------------------------------------------
+// Union of prototype 1's 12 hubs (id/name/lat/lng/type/desc kept as-is).
+// `weight` merged from prototype 2 where the hub exists there (matched by
+// city name); otherwise defaults by type: origin 0.3 / hub 0.4 / dest 0.2.
+const HUBS = {
+  // China (origins)
+  CAN: { id: "CAN", name: "GUANGZHOU", lat: 23.1291, lng: 113.2644, type: "origin", weight: 0.5,  desc: "Shein Supply Chain Hub" },
+  SZX: { id: "SZX", name: "SHENZHEN",  lat: 22.5431, lng: 114.0579, type: "origin", weight: 0.25, desc: "Tech/Temu Hub" },
+  HKG: { id: "HKG", name: "HONG KONG", lat: 22.3193, lng: 114.1694, type: "origin", weight: 0.3,  desc: "Global Gateway" },          // not in proto 2 → default origin
+  PVG: { id: "PVG", name: "SHANGHAI",  lat: 31.2304, lng: 121.4737, type: "origin", weight: 0.15, desc: "East China Hub" },
+  YIW: { id: "YIW", name: "YIWU",      lat: 29.3151, lng: 120.0768, type: "origin", weight: 0.1,  desc: "Small Commodities" },
+
+  // Europe (entry hubs + destinations)
+  LGG: { id: "LGG", name: "LIEGE",     lat: 50.6326, lng: 5.5797,   type: "hub",  weight: 0.5,  desc: "Key EU Entry (eWTP)" },
+  AMS: { id: "AMS", name: "AMSTERDAM", lat: 52.3676, lng: 4.9041,   type: "hub",  weight: 0.1,  desc: "Logistics Hub" },
+  FRA: { id: "FRA", name: "FRANKFURT", lat: 50.1109, lng: 8.6821,   type: "hub",  weight: 0.2,  desc: "Air Cargo Hub" },
+  LHR: { id: "LHR", name: "LONDON",    lat: 51.5074, lng: -0.1278,  type: "dest", weight: 0.2,  desc: "UK Market" },
+  CDG: { id: "CDG", name: "PARIS",     lat: 48.8566, lng: 2.3522,   type: "dest", weight: 0.2,  desc: "Fashion Market" },           // not in proto 2 → default dest
+  MAD: { id: "MAD", name: "MADRID",    lat: 40.4168, lng: -3.7038,  type: "dest", weight: 0.2,  desc: "Southern EU Hub" },          // not in proto 2 → default dest
+  WAW: { id: "WAW", name: "WARSAW",    lat: 52.2297, lng: 21.0122,  type: "dest", weight: 0.2,  desc: "Central EU Hub" },           // not in proto 2 → default dest
+};
+
+// --- Yearly data --------------------------------------------------------------
+// Per-year merge:
+//   volume/rawVolume/dailyAvg/rawDaily/growth/desc/sources/activeRoutes ← proto 1
+//   sheinShare/temuShare (was sheinRatio/temuRatio) + event               ← proto 2
+//   volumeMultiplier ← proto 2 (provenance only — the scene derives pillar
+//                      height from rawVolume, not from this field)
+// Note: proto 2's own daily volumeText (2.0M…14.0M) roughly cross-checks
+// proto 1's dailyAvg series; proto 1 values are authoritative here per spec.
+const YEARS = {
+  2020: {
+    volume: "1.2 Billion",
+    rawVolume: 1.2,
+    dailyAvg: "~3.3M",
+    rawDaily: 3.3,
+    growth: "+15%",
+    sheinShare: 0.95,
+    temuShare: 0.0,
+    volumeMultiplier: 1.0,
+    desc: "Pandemic-driven e-commerce boom. Early surge in direct-mail small parcels from Guangdong to Europe via air freight.",
+    event: "Pandemic surge. Shein dominates direct export channels.",
+    sources: "Eurostat; Cross-Border Commerce Europe",
+    activeRoutes: [
+      { src: "HKG", dst: "LHR", intensity: 0.6 },
+      { src: "HKG", dst: "FRA", intensity: 0.5 },
+      { src: "PVG", dst: "AMS", intensity: 0.5 },
+      { src: "CAN", dst: "LHR", intensity: 0.4 },
+    ],
+  },
+  2021: {
+    volume: "1.8 Billion",
+    rawVolume: 1.8,
+    dailyAvg: "~4.9M",
+    rawDaily: 4.9,
+    growth: "+50%",
+    sheinShare: 0.98,
+    temuShare: 0.0,
+    volumeMultiplier: 1.4,
+    desc: "EU VAT reform (IOSS) streamlines customs for parcels <€150. Shein expands aggressively in Western Europe.",
+    event: "EU IOSS tax rules implemented. Cross-border volume grows.",
+    sources: "European Commission (DG TAXUD); Cargo Facts",
+    activeRoutes: [
+      { src: "HKG", dst: "LHR", intensity: 0.7 },
+      { src: "CAN", dst: "LGG", intensity: 0.8 },
+      { src: "SZX", dst: "LGG", intensity: 0.6 },
+      { src: "PVG", dst: "FRA", intensity: 0.6 },
+      { src: "YIW", dst: "MAD", intensity: 0.4 },
+    ],
+  },
+  2022: {
+    volume: "2.5 Billion",
+    rawVolume: 2.5,
+    dailyAvg: "~6.8M",
+    rawDaily: 6.8,
+    growth: "+38%",
+    sheinShare: 0.95,
+    temuShare: 0.05,
+    volumeMultiplier: 1.8,
+    desc: "Temu enters the market. The 'De Minimis' loophole becomes the primary channel for ultra-fast fashion logistics chains.",
+    event: "Shein valuation peaks. Temu launches in US (minimal EU impact).",
+    sources: "Transport Intelligence (Ti); China Customs",
+    activeRoutes: [
+      { src: "CAN", dst: "LGG", intensity: 0.9 },
+      { src: "SZX", dst: "AMS", intensity: 0.7 },
+      { src: "HKG", dst: "CDG", intensity: 0.6 },
+      { src: "PVG", dst: "FRA", intensity: 0.7 },
+      { src: "YIW", dst: "WAW", intensity: 0.5 },
+    ],
+  },
+  2023: {
+    volume: "3.8 Billion",
+    rawVolume: 3.8,
+    dailyAvg: "~10.4M",
+    rawDaily: 10.4,
+    growth: "+52%",
+    sheinShare: 0.65,
+    temuShare: 0.35,
+    volumeMultiplier: 3.0,
+    desc: "Explosive growth. Shein & Temu reportedly occupy ~30% of total long-haul air cargo capacity out of South China.",
+    event: "Temu enters EU market. Aggressive expansion begins.",
+    sources: "Reuters Analysis; IATA Air Cargo Market Analysis",
+    activeRoutes: [
+      { src: "CAN", dst: "LGG", intensity: 1.0 },
+      { src: "SZX", dst: "LHR", intensity: 0.9 },
+      { src: "HKG", dst: "MAD", intensity: 0.8 },
+      { src: "PVG", dst: "FRA", intensity: 0.8 },
+      { src: "YIW", dst: "WAW", intensity: 0.7 },
+      { src: "CAN", dst: "CDG", intensity: 0.8 },
+    ],
+  },
+  2024: {
+    volume: "4.5 Billion",
+    rawVolume: 4.5,
+    dailyAvg: "~12.3M",
+    rawDaily: 12.3,
+    growth: "+18%",
+    sheinShare: 0.45,
+    temuShare: 0.50,
+    volumeMultiplier: 6.2,
+    desc: "Supply chain diversification. New logistics hubs in Eastern Europe (Budapest/Warsaw) rise to mitigate customs bottlenecks.",
+    event: "4.6B parcels flood EU. Capacity crunch at Liege/Heathrow.",
+    sources: "EU-China Chamber of Commerce; Logistics Reports",
+    activeRoutes: [
+      { src: "CAN", dst: "LGG", intensity: 1.0 },
+      { src: "SZX", dst: "AMS", intensity: 0.9 },
+      { src: "HKG", dst: "MAD", intensity: 0.9 },
+      { src: "YIW", dst: "WAW", intensity: 0.9 },
+      { src: "PVG", dst: "FRA", intensity: 0.8 },
+      { src: "SZX", dst: "CDG", intensity: 0.9 },
+    ],
+  },
+  2025: {
+    volume: "5.2 Billion", // projection (proto 1)
+    rawVolume: 5.2,
+    dailyAvg: "~14.2M",
+    rawDaily: 14.2,
+    growth: "+15%",
+    sheinShare: 0.42,
+    temuShare: 0.53,
+    volumeMultiplier: 7.0,
+    desc: "Projected peak. Massive automated logistics network fully operational. Potential EU regulatory shifts on duty-free thresholds.",
+    event: "Regulatory scrutiny on 'de minimis'. Growth stabilizes.",
+    sources: "Forecast by McKinsey & Company; Industry Projections",
+    activeRoutes: [
+      { src: "CAN", dst: "LGG", intensity: 1.0 },
+      { src: "SZX", dst: "AMS", intensity: 1.0 },
+      { src: "HKG", dst: "LHR", intensity: 1.0 },
+      { src: "PVG", dst: "FRA", intensity: 1.0 },
+      { src: "YIW", dst: "WAW", intensity: 1.0 },
+      { src: "SZX", dst: "MAD", intensity: 1.0 },
+      { src: "CAN", dst: "CDG", intensity: 1.0 },
+      { src: "SZX", dst: "WAW", intensity: 0.8 },
+    ],
+  },
+};
+
+const YEAR_LIST = [2020, 2021, 2022, 2023, 2024, 2025];
+
+// ============================================================================
+// scene.js — glyphcss logistics scene engine (plain fragment, no import/export)
+//
+// Exposes:  createLogisticsScene(host, { landGrid, hubs, years })
+//             → { setYear, setView, getView, setPaused, destroy }
+// Requires in scope (imported by the integrator):
+//   createGlyphOrthographicCamera, createGlyphScene
+// ============================================================================
+
+// ─── Tunables ───────────────────────────────────────────────────────────────
+// All scene-engine constants are prefixed SCN_ to avoid collisions with the
+// data.js / ui.js fragments that share the same module scope.
+
+const SCN_GLOBE_RADIUS   = 1;          // unit sphere, like the official world example
+const SCN_GRID_STEP_DEG  = 2;          // 2° cells → 180×90 = 16,200 quads (proven scale)
+
+// Terrain "palette" — these grays encode glyph weight, delivered to the
+// renderer as 1×1 solid-gray textures (see scnGrayTexture below): in
+// glyphcss 0.0.9 solid mode with useColors:false the polygon COLOR is
+// ignored for glyph selection (verified in the 0.0.9 bundle — the palette
+// index comes from the lighting shade alone), but a textured polygon
+// multiplies its shade by the texel luminance. With ambient locked at 1.0
+// the glyph index is exactly luma/255 × 9 (+ Bayer dither) over the solid
+// palette " .:-=+*#%@" — BRIGHT = dense ink. On paper-white: ocean (dark
+// gray) ≈ near-blank with faint dots, land (mid gray) = clear woodcut
+// blocks. A few shades per class so the map does not look flat.
+const SCN_LAND_COLORS  = ["#d2d2d2", "#cccccc", "#d8d8d8", "#c6c6c6"];
+const SCN_OCEAN_COLORS = ["#161616", "#121212", "#1a1a1a"];
+
+// Camera. rotY chosen so the China→Europe corridor faces the viewer at boot.
+const SCN_GLOBE_CAM = { rotX: 25, rotY: 65 };
+const SCN_FLAT_CAM  = { rotX: 0,  rotY: 0 };   // locked while in flat view
+const SCN_ZOOM_MIN = 6, SCN_ZOOM_MAX = 120;
+const SCN_INITIAL_ZOOM_DESKTOP = 24;           // px per world-unit (world example)
+
+// Flat map: equirectangular, 0.01 world-units per degree → 3.6 × 1.8 units.
+const SCN_FLAT_SCALE = 0.01;
+
+// globe ↔ flat morph
+const SCN_MORPH_MS = 800;
+const SCN_MORPH_FRAMES = 12;
+const SCN_MORPH_FRAME_BUDGET_MS = 90;  // first morph frame slower than this → degrade
+const SCN_MORPH_FALLBACK_FRAMES = 4;   // shrink N frames, swap, grow N frames
+const SCN_MORPH_FALLBACK_STEP_MS = 45;
+
+// Route ribbon arcs
+const SCN_ARC_SEGMENTS  = 24;
+const SCN_ARC_WIDTH     = 0.012;       // ribbon full width
+const SCN_ARC_PEAK_BASE = 0.06;        // radial lift at zero arc length
+const SCN_ARC_PEAK_SPAN = 0.12;        // extra lift × (arcAngle / π)
+const SCN_ARC_COLOR_HI  = "#aaaaaa";   // intensity 1.0 → '*' weight (lighter than land; dark marks over ocean)
+const SCN_ARC_COLOR_LO  = "#909090";   // intensity 0.4 → '+' weight
+
+// Particles
+const SCN_PARTICLE_SIZE     = 0.018;   // octahedron half-extent
+const SCN_PARTICLE_MAX      = 150;
+const SCN_PARTICLE_TICK_MS  = 66;      // ~15 fps
+const SCN_PARTICLE_SPEED    = 0.28;    // arc-radians per second along the route
+const SCN_PARTICLE_PARK     = [0, 0, -999]; // far off-grid → clipped, invisible
+const SCN_SHEIN_COLOR = "#ffffff";     // max luma → heaviest glyph (@)
+const SCN_TEMU_COLOR  = "#989898";     // mid luma → '+'/'*' glyph (legend: * TEMU), lighter than land
+
+// Hub pillars
+const SCN_HUB_BASE_SIZE = 0.02;        // square cross-section edge
+const SCN_HUB_H_MIN  = 0.05;
+const SCN_HUB_H_SPAN = 0.15;           // × weight × yearly volume multiplier
+// All hub pillars share the heaviest glyph weight (max luma = max ink).
+const SCN_HUB_COLORS = { origin: "#ffffff", hub: "#ffffff", dest: "#ffffff" };
+
+// Hub name labels (DOM overlay)
+const SCN_LABEL_RADIUS    = 1.06;      // globe: anchor at radius × 1.06
+const SCN_LABEL_LIFT_FLAT = 0.06;      // flat: anchor lifted off the map plane
+// TUI: labels use the same VGA cell as the scene glyphs; show/hide hard-cuts.
+const SCN_LABEL_CSS =
+  "position:absolute;transform:translate(-50%,-50%);white-space:pre;" +
+  "font-size:16px;line-height:1;text-transform:uppercase;" +
+  "font-family:'IBM VGA','Courier New',monospace;" +
+  "color:var(--ink);background:var(--paper);padding:0 4px;" +
+  "opacity:0;pointer-events:none;z-index:5;";
+
+// ─── Coordinate convention (matches the official world example exactly) ─────
+// Z-up, longitude negated in Y.
+function latLonToXYZ(latDeg, lonDeg, radius) {
+  const lat = (latDeg * Math.PI) / 180;
+  const lon = (lonDeg * Math.PI) / 180;
+  // +sin(lon): in glyphcss 0.0.9 the world-example's negated-Y convention
+  // renders mirrored (Warsaw west of Madrid) — verified via label positions.
+  // Winding is normalised downstream by orientPoly, so no reversal needed.
+  return [
+    radius * Math.cos(lat) * Math.cos(lon),
+    radius * Math.cos(lat) * Math.sin(lon),
+    radius * Math.sin(lat),
+  ];
+}
+
+// ─── Glyph-weight textures ──────────────────────────────────────────────────
+// The only per-polygon glyph-density channel in glyphcss 0.0.9 (with
+// useColors:false) is a texture: the rasterizer multiplies the lighting shade
+// by the texel luminance before picking the palette character. Each weight
+// gray above becomes a 1×1 solid PNG data URI (self-contained, no fetches).
+const SCN_UV_QUAD = [[0, 0], [0, 0], [0, 0], [0, 0]];
+const scnTexCache = new Map();
+function scnGrayTexture(hex) {
+  let url = scnTexCache.get(hex);
+  if (!url) {
+    const cv = document.createElement("canvas");
+    cv.width = cv.height = 1;
+    const ctx = cv.getContext("2d");
+    ctx.fillStyle = hex;
+    ctx.fillRect(0, 0, 1, 1);
+    url = cv.toDataURL("image/png");
+    scnTexCache.set(hex, url);
+  }
+  return url;
+}
+
+// ─── Scene factory ──────────────────────────────────────────────────────────
+function createLogisticsScene(host, { landGrid, hubs, years }) {
+  // ── tiny vector kit (kept inside the closure — no extra globals) ─────────
+  const vAdd = (a, b) => [a[0] + b[0], a[1] + b[1], a[2] + b[2]];
+  const vSub = (a, b) => [a[0] - b[0], a[1] - b[1], a[2] - b[2]];
+  const vScale = (a, s) => [a[0] * s, a[1] * s, a[2] * s];
+  const vDot = (a, b) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
+  const vCross = (a, b) => [
+    a[1] * b[2] - a[2] * b[1],
+    a[2] * b[0] - a[0] * b[2],
+    a[0] * b[1] - a[1] * b[0],
+  ];
+  const vLen = (a) => Math.hypot(a[0], a[1], a[2]);
+  const vNorm = (a) => { const l = vLen(a) || 1; return [a[0] / l, a[1] / l, a[2] / l]; };
+  const vLerp = (a, b, t) => [
+    a[0] + (b[0] - a[0]) * t,
+    a[1] + (b[1] - a[1]) * t,
+    a[2] + (b[2] - a[2]) * t,
+  ];
+  const clamp = (x, lo, hi) => Math.max(lo, Math.min(hi, x));
+
+  function lerpColor(hexA, hexB, t) {
+    const pa = parseInt(hexA.slice(1), 16), pb = parseInt(hexB.slice(1), 16);
+    const ch = (sh) => {
+      const a = (pa >> sh) & 255, b = (pb >> sh) & 255;
+      return Math.round(a + (b - a) * t);
+    };
+    return "#" + ((ch(16) << 16) | (ch(8) << 8) | ch(0)).toString(16).padStart(6, "0");
+  }
+
+  // Orient a polygon so its right-hand winding normal points along `desired`
+  // (glyphcss expects CCW-from-outside; reversing the vertex order flips it).
+  // Handles the degenerate pole quads where two corners coincide.
+  function orientPoly(verts, desired, color) {
+    let n = vCross(vSub(verts[1], verts[0]), vSub(verts[2], verts[0]));
+    if (vLen(n) < 1e-12 && verts.length > 3) {
+      n = vCross(vSub(verts[2], verts[0]), vSub(verts[3], verts[0]));
+    }
+    const keep = vDot(n, desired) >= 0;
+    return {
+      vertices: keep ? verts : verts.slice().reverse(),
+      color,
+      uvs: SCN_UV_QUAD,
+      texture: scnGrayTexture(color),  // luma → glyph weight (see SCN_LAND_COLORS note)
+    };
+  }
+
+  // ── camera + scene (options copied from the official world example) ──────
+  const hostW = host.clientWidth || window.innerWidth || 800;
+  const initialZoom = hostW < 800
+    ? Math.max(9, Math.round(hostW / 30))
+    : SCN_INITIAL_ZOOM_DESKTOP;
+  const camera = createGlyphOrthographicCamera({
+    rotX: SCN_GLOBE_CAM.rotX,
+    rotY: SCN_GLOBE_CAM.rotY,
+    zoom: clamp(initialZoom, SCN_ZOOM_MIN, SCN_ZOOM_MAX),
+  });
+  const scene = createGlyphScene(host, {
+    camera,
+    autoSize: true,
+    mode: "solid",
+    useColors: false,   // 1-bit: characters are the ink; density is the dither
+    glyphPalette: "default",
+    // Ambient locked at 1.0 / directional off: the base shade saturates to 1
+    // everywhere (globe AND flat view), so glyph density is driven purely by
+    // each polygon's weight texture (geography/data), never by sphere shading.
+    directionalLight: { direction: [-0.5, -0.7, -0.5], intensity: 0 },
+    ambientLight: { intensity: 1.0 },
+  });
+
+  function gridDims() {
+    const o = scene.getOptions();
+    return { cols: o.cols ?? 80, rows: o.rows ?? 24, cellAspect: o.cellAspect ?? 2 };
+  }
+
+  // ── flat-map basis, probed from the camera itself ─────────────────────────
+  // Rather than guessing the camera's rotX/rotY convention, temporarily point
+  // the camera at the flat-view angles and project the six axis directions:
+  //   EX = axis that moves right on screen   (east)
+  //   EZ = axis that moves up on screen      (north)
+  //   N  = remaining axis, oriented toward the camera (larger depth = closer
+  //        in glyphcss 0.0.9 — front-facing sphere points project depth > 0)
+  // This makes the flat map north-up / east-right by construction.
+  function pickFlatBasis() {
+    const prev = { rotX: camera.rotX, rotY: camera.rotY };
+    camera.rotX = SCN_FLAT_CAM.rotX;
+    camera.rotY = SCN_FLAT_CAM.rotY;
+    const P = (v) => camera.project(v, 100, 100, 1);
+    const o = P([0, 0, 0]);
+    const axes = [
+      [1, 0, 0], [-1, 0, 0],
+      [0, 1, 0], [0, -1, 0],
+      [0, 0, 1], [0, 0, -1],
+    ].map((axis) => {
+      const p = P(axis);
+      return { axis, dCol: p[0] - o[0], dRow: p[1] - o[1], dDepth: p[2] - o[2] };
+    });
+    const lineOf = (a) => a.findIndex((v) => v !== 0);
+    let ex = axes[0];
+    for (const a of axes) if (a.dCol > ex.dCol) ex = a;
+    let ez = null;
+    for (const a of axes) {
+      if (lineOf(a.axis) === lineOf(ex.axis)) continue;
+      if (ez === null || -a.dRow > -ez.dRow) ez = a;
+    }
+    let n = null;
+    for (const a of axes) {
+      if (lineOf(a.axis) === lineOf(ex.axis) || lineOf(a.axis) === lineOf(ez.axis)) continue;
+      if (n === null || a.dDepth > n.dDepth) n = a;
+    }
+    camera.rotX = prev.rotX;
+    camera.rotY = prev.rotY;
+    return { ex: ex.axis, ez: ez.axis, n: n.axis };
+  }
+  const flatBasis = pickFlatBasis();
+
+  // Equirectangular placement: lon → east axis, lat → north axis.
+  function flatPos(latDeg, lonDeg, lift = 0) {
+    return [
+      flatBasis.ex[0] * lonDeg * SCN_FLAT_SCALE + flatBasis.ez[0] * latDeg * SCN_FLAT_SCALE + flatBasis.n[0] * lift,
+      flatBasis.ex[1] * lonDeg * SCN_FLAT_SCALE + flatBasis.ez[1] * latDeg * SCN_FLAT_SCALE + flatBasis.n[1] * lift,
+      flatBasis.ex[2] * lonDeg * SCN_FLAT_SCALE + flatBasis.ez[2] * latDeg * SCN_FLAT_SCALE + flatBasis.n[2] * lift,
+    ];
+  }
+
+  // ── bake the 2° world grid (sphere corners + flat corners per cell) ───────
+  // A 2° cell samples 4 subcells of the 1° land bitmap; ≥2 land bits = land.
+  // landGrid rows run north→south (row 0 = 89.5°N), cols run from 180°W.
+  function landAt1Deg(latFloor, lonFloor) {
+    const c = (((lonFloor + 180) % 360) + 360) % 360;
+    const r = 89 - latFloor;
+    if (r < 0 || r >= landGrid.rows) return false;
+    return !!landGrid.land(c, r);
+  }
+
+  const cells = []; // { color, s:[4×vec3], f:[4×vec3], radial:vec3 }
+  {
+    let ci = 0;
+    for (let latTop = 90; latTop > -90; latTop -= SCN_GRID_STEP_DEG) {
+      for (let lon0 = -180; lon0 < 180; lon0 += SCN_GRID_STEP_DEG, ci++) {
+        let landBits = 0;
+        for (const dLat of [1, 2]) {
+          for (const dLon of [0, 1]) {
+            if (landAt1Deg(latTop - dLat, lon0 + dLon)) landBits++;
+          }
+        }
+        const isLand = landBits >= 2;
+        // Deterministic per-cell shade with a mild latitude drift so the
+        // terrain does not look like a single flat fill.
+        const hash = (ci * 7 + latTop * 13 + ((Math.abs(latTop) / 30) | 0)) & 0x7fffffff;
+        const color = isLand
+          ? SCN_LAND_COLORS[hash % SCN_LAND_COLORS.length]
+          : SCN_OCEAN_COLORS[hash % SCN_OCEAN_COLORS.length];
+
+        const lat0 = latTop, lat1 = latTop - SCN_GRID_STEP_DEG;
+        const lon1 = lon0 + SCN_GRID_STEP_DEG;
+        // Fixed geometric corner order NW→NE→SE→SW; winding is normalised by
+        // orientPoly at emit time, so sphere and flat variants stay in vertex
+        // correspondence for the morph lerp.
+        const cornersLL = [[lat0, lon0], [lat0, lon1], [lat1, lon1], [lat1, lon0]];
+        cells.push({
+          color,
+          s: cornersLL.map(([la, lo]) => latLonToXYZ(la, lo, SCN_GLOBE_RADIUS)),
+          f: cornersLL.map(([la, lo]) => flatPos(la, lo)),
+          radial: latLonToXYZ(lat0 - SCN_GRID_STEP_DEG / 2, lon0 + SCN_GRID_STEP_DEG / 2, 1),
+        });
+      }
+    }
+  }
+
+  let spherePolyCache = null;
+  let flatPolyCache = null;
+  // World mesh at morph parameter t: 0 = globe, 1 = flat, in-between = lerp.
+  // Winding is re-oriented per quad against the lerped outward direction so
+  // back-hemisphere quads do not get backface-culled mid-morph.
+  function worldPolysAt(t) {
+    if (t <= 0) {
+      if (!spherePolyCache) {
+        spherePolyCache = cells.map((c) => orientPoly(c.s, c.radial, c.color));
+      }
+      return spherePolyCache;
+    }
+    if (t >= 1) {
+      if (!flatPolyCache) {
+        flatPolyCache = cells.map((c) => orientPoly(c.f, flatBasis.n, c.color));
+      }
+      return flatPolyCache;
+    }
+    const polys = new Array(cells.length);
+    for (let i = 0; i < cells.length; i++) {
+      const c = cells[i];
+      const verts = [
+        vLerp(c.s[0], c.f[0], t),
+        vLerp(c.s[1], c.f[1], t),
+        vLerp(c.s[2], c.f[2], t),
+        vLerp(c.s[3], c.f[3], t),
+      ];
+      polys[i] = orientPoly(verts, vLerp(c.radial, flatBasis.n, t), c.color);
+    }
+    return polys;
+  }
+
+  // ── scene state ───────────────────────────────────────────────────────────
+  let view = "globe";
+  let morphTargetView = null;           // non-null while a morph runs
+  const morphing = () => morphTargetView !== null;
+  let pendingView = null;               // setView() request queued during a morph
+  let morphDegraded = false;            // sticky: first slow morph → always fallback
+  let morphTimer = null;
+  let savedGlobeCam = { rotX: SCN_GLOBE_CAM.rotX, rotY: SCN_GLOBE_CAM.rotY };
+
+  let currentYear = null;
+  let paused = false;                   // external (setPaused)
+  let hiddenPaused = false;             // page visibility
+  let destroyed = false;
+
+  let worldHandle = scene.add(worldPolysAt(0));
+  let arcsHandle = null;
+  let hubsHandle = null;
+
+  function swapWorld(polys) {
+    if (worldHandle) worldHandle.dispose();
+    worldHandle = scene.add(polys);
+  }
+
+  // ── great-circle routes (per-year, per-view geometry) ─────────────────────
+  const maxVol = Math.max(1e-9, ...Object.values(years).map((y) => y.rawVolume ?? 0));
+
+  // Sampled centerline for one route in the current view. Peak lift grows
+  // with arc length: 0.06 + 0.12 × (arcAngle / π). Flat view lifts straight
+  // up off the map plane instead of radially.
+  function routeSamples(src, dst) {
+    const a = latLonToXYZ(src.lat, src.lng, 1);
+    const b = latLonToXYZ(dst.lat, dst.lng, 1);
+    const omega = Math.acos(clamp(vDot(a, b), -1, 1));
+    const peak = SCN_ARC_PEAK_BASE + SCN_ARC_PEAK_SPAN * (omega / Math.PI);
+    const samples = [];
+    if (view === "flat") {
+      const fa = flatPos(src.lat, src.lng);
+      const fb = flatPos(dst.lat, dst.lng);
+      for (let i = 0; i <= SCN_ARC_SEGMENTS; i++) {
+        const t = i / SCN_ARC_SEGMENTS;
+        samples.push(vAdd(vLerp(fa, fb, t), vScale(flatBasis.n, peak * Math.sin(Math.PI * t))));
+      }
+    } else {
+      const sinO = Math.sin(omega);
+      for (let i = 0; i <= SCN_ARC_SEGMENTS; i++) {
+        const t = i / SCN_ARC_SEGMENTS;
+        // slerp along the great circle, then lift radially.
+        const p = sinO < 1e-6
+          ? vNorm(vLerp(a, b, t))
+          : vNorm(vAdd(
+              vScale(a, Math.sin((1 - t) * omega) / sinO),
+              vScale(b, Math.sin(t * omega) / sinO),
+            ));
+        samples.push(vScale(p, SCN_GLOBE_RADIUS * (1 + peak * Math.sin(Math.PI * t))));
+      }
+    }
+    return { samples, omega };
+  }
+
+  function arcColor(intensity) {
+    return lerpColor(SCN_ARC_COLOR_LO, SCN_ARC_COLOR_HI, clamp((intensity - 0.4) / 0.6, 0, 1));
+  }
+
+  // Thin ribbon along the samples. Each segment is emitted twice (both
+  // windings) so the ribbon survives backface culling from any orbit angle.
+  function ribbonPolys(samples, color) {
+    const n = samples.length;
+    const half = SCN_ARC_WIDTH / 2;
+    const sides = new Array(n);
+    for (let i = 0; i < n; i++) {
+      const dir = vNorm(vSub(samples[Math.min(i + 1, n - 1)], samples[Math.max(i - 1, 0)]));
+      const up = view === "flat" ? flatBasis.n : vNorm(samples[i]);
+      sides[i] = vScale(vNorm(vCross(dir, up)), half);
+    }
+    const polys = [];
+    const texture = scnGrayTexture(color); // luma → glyph weight
+    for (let i = 0; i < n - 1; i++) {
+      const q = [
+        vAdd(samples[i], sides[i]),
+        vAdd(samples[i + 1], sides[i + 1]),
+        vSub(samples[i + 1], sides[i + 1]),
+        vSub(samples[i], sides[i]),
+      ];
+      polys.push({ vertices: q, color, uvs: SCN_UV_QUAD, texture });
+      polys.push({ vertices: q.slice().reverse(), color, uvs: SCN_UV_QUAD, texture });
+    }
+    return polys;
+  }
+
+  // ── hub pillars ───────────────────────────────────────────────────────────
+  function pillarPolys(hub, height) {
+    let base, axis, t1, t2;
+    if (view === "flat") {
+      base = flatPos(hub.lat, hub.lng);
+      axis = flatBasis.n;
+      t1 = flatBasis.ex;
+      t2 = flatBasis.ez;
+    } else {
+      axis = latLonToXYZ(hub.lat, hub.lng, 1);
+      base = vScale(axis, SCN_GLOBE_RADIUS);
+      t1 = vNorm(vCross([0, 0, 1], axis)); // east-ish tangent (hubs are off-pole)
+      t2 = vCross(axis, t1);
+    }
+    const s = SCN_HUB_BASE_SIZE / 2;
+    const color = SCN_HUB_COLORS[hub.type] ?? SCN_HUB_COLORS.hub;
+    const corner = (s1, s2, h) =>
+      vAdd(vAdd(vAdd(base, vScale(t1, s1 * s)), vScale(t2, s2 * s)), vScale(axis, h));
+    const b1 = corner(1, 1, 0), b2 = corner(1, -1, 0), b3 = corner(-1, -1, 0), b4 = corner(-1, 1, 0);
+    const p1 = corner(1, 1, height), p2 = corner(1, -1, height),
+          p3 = corner(-1, -1, height), p4 = corner(-1, 1, height);
+    // 4 sides + top cap (bottom is buried in the surface).
+    return [
+      orientPoly([b1, b2, p2, p1], t1, color),
+      orientPoly([b3, b4, p4, p3], vScale(t1, -1), color),
+      orientPoly([b4, b1, p1, p4], t2, color),
+      orientPoly([b2, b3, p3, p2], vScale(t2, -1), color),
+      orientPoly([p1, p2, p3, p4], axis, color),
+    ];
+  }
+
+  // ── particles ─────────────────────────────────────────────────────────────
+  // Hand-written octahedron (8 triangles), oriented outward via orientPoly.
+  function octaPolys(size, color) {
+    const polys = [];
+    for (const sx of [1, -1]) {
+      for (const sy of [1, -1]) {
+        for (const sz of [1, -1]) {
+          polys.push(orientPoly(
+            [[sx * size, 0, 0], [0, sy * size, 0], [0, 0, sz * size]],
+            [sx, sy, sz],
+            color,
+          ));
+        }
+      }
+    }
+    return polys;
+  }
+
+  // Two color-keyed pools of pooled mesh handles; a handle is never disposed
+  // once created, only parked far off-grid (clipped → invisible, zero cost).
+  const pools = { shein: [], temu: [] };
+  const poolColors = { shein: SCN_SHEIN_COLOR, temu: SCN_TEMU_COLOR };
+  let particles = [];       // active: { handle, route, t, speed }
+  let routesGeom = [];      // per active route: { samples, omega, intensity }
+
+  function parkHandle(h) {
+    h.setTransform({ position: SCN_PARTICLE_PARK.slice(), scale: 0.001 });
+  }
+
+  function parkAllParticles() {
+    particles = [];
+    for (const key of Object.keys(pools)) for (const h of pools[key]) parkHandle(h);
+  }
+
+  function pickRoute() {
+    if (routesGeom.length === 0) return null;
+    const totalW = routesGeom.reduce((s, r) => s + (r.intensity || 0.1), 0);
+    let x = Math.random() * totalW;
+    for (const r of routesGeom) {
+      x -= (r.intensity || 0.1);
+      if (x <= 0) return r;
+    }
+    return routesGeom[routesGeom.length - 1];
+  }
+
+  // Progress/sec normalised by arc length so long hauls do not look slower.
+  function routeSpeed(route) {
+    return (SCN_PARTICLE_SPEED * (0.7 + 0.6 * (route.intensity ?? 1))) /
+      Math.max(0.25, route.omega);
+  }
+
+  function sampleRoute(route, t) {
+    const s = route.samples;
+    const ft = clamp(t, 0, 1) * (s.length - 1);
+    const i = Math.min(s.length - 2, Math.floor(ft));
+    return vLerp(s[i], s[i + 1], ft - i);
+  }
+
+  function assignParticles(yearData) {
+    particles = [];
+    const total = routesGeom.length === 0
+      ? 0
+      : Math.min(SCN_PARTICLE_MAX, Math.round((yearData.rawDaily ?? 5) * 10));
+    const ss = yearData.sheinShare ?? 0.5;
+    const ts = yearData.temuShare ?? 0.5;
+    const counts = {
+      shein: total === 0 ? 0 : Math.round((total * ss) / Math.max(1e-6, ss + ts)),
+    };
+    counts.temu = total - counts.shein;
+
+    for (const key of Object.keys(pools)) {
+      const pool = pools[key];
+      while (pool.length < counts[key]) {
+        pool.push(scene.add(octaPolys(SCN_PARTICLE_SIZE, poolColors[key]), {
+          position: SCN_PARTICLE_PARK.slice(),
+          scale: 0.001,
+        }));
+      }
+      for (let i = 0; i < pool.length; i++) {
+        if (i < counts[key]) {
+          const route = pickRoute();
+          const p = { handle: pool[i], route, t: Math.random(), speed: routeSpeed(route) };
+          pool[i].setTransform({ position: sampleRoute(route, p.t), scale: 1 });
+          particles.push(p);
+        } else {
+          parkHandle(pool[i]);
+        }
+      }
+    }
+  }
+
+  // 15fps tick. Skipped while: externally paused, tab hidden, mid-drag
+  // (pointermove already rerenders), or morphing.
+  let lastTick = performance.now();
+  const tickTimer = setInterval(() => {
+    const now = performance.now();
+    const dt = Math.min(0.2, (now - lastTick) / 1000);
+    lastTick = now;
+    if (paused || hiddenPaused || morphing() || activePtr !== null) return;
+    if (particles.length === 0) return;
+    for (const p of particles) {
+      p.t += p.speed * dt;
+      if (p.t >= 1) {
+        p.t -= Math.floor(p.t);
+        const route = pickRoute();
+        if (route) { p.route = route; p.speed = routeSpeed(route); }
+      }
+      p.handle.setTransform({ position: sampleRoute(p.route, p.t), scale: 1 });
+    }
+    scene.rerender();
+  }, SCN_PARTICLE_TICK_MS);
+
+  // ── per-year rebuild (arcs + pillars + particle quotas) ───────────────────
+  function rebuildYearVisuals() {
+    if (currentYear == null || !years[currentYear]) return;
+    const yd = years[currentYear];
+
+    if (arcsHandle) { arcsHandle.dispose(); arcsHandle = null; }
+    if (hubsHandle) { hubsHandle.dispose(); hubsHandle = null; }
+
+    routesGeom = [];
+    const arcPolys = [];
+    for (const r of yd.activeRoutes ?? []) {
+      const src = hubs[r.src], dst = hubs[r.dst];
+      if (!src || !dst) continue;
+      const { samples, omega } = routeSamples(src, dst);
+      const intensity = r.intensity ?? 1;
+      routesGeom.push({ samples, omega, intensity });
+      arcPolys.push(...ribbonPolys(samples, arcColor(intensity)));
+    }
+    if (arcPolys.length) arcsHandle = scene.add(arcPolys);
+
+    const volMul = (yd.rawVolume ?? maxVol) / maxVol;
+    const hubPolys = [];
+    for (const hub of Object.values(hubs)) {
+      const h = SCN_HUB_H_MIN + (hub.weight ?? 0.3) * SCN_HUB_H_SPAN * volMul;
+      hubPolys.push(...pillarPolys(hub, h));
+    }
+    if (hubPolys.length) hubsHandle = scene.add(hubPolys);
+
+    assignParticles(yd);
+    scene.rerender();
+    updateLabels();
+  }
+
+  // ── hub name labels (DOM overlay, world-example pattern) ──────────────────
+  let labelsHidden = false;
+  const labelLayer = host.querySelector(".glyph-scene") ?? host;
+  // Higher-weight hubs win the overlap contest.
+  const labelRecs = Object.values(hubs)
+    .slice()
+    .sort((a, b) => (b.weight ?? 0) - (a.weight ?? 0))
+    .map((hub) => {
+      const el = document.createElement("div");
+      el.textContent = "+" + hub.name;   // + marks the anchor cell
+      el.style.cssText = SCN_LABEL_CSS;
+      labelLayer.appendChild(el);
+      // w is a lazy-measured width cache (getBoundingClientRect, not a
+      // per-character estimate); invalidated once the VGA webfont arrives.
+      return { hub, el, w: 0 };
+    });
+  if (document.fonts?.ready) {
+    document.fonts.ready.then(() => {
+      if (destroyed) return;
+      for (const r of labelRecs) r.w = 0;
+      updateLabels();
+    });
+  }
+
+  function labelAnchor(hub) {
+    if (view === "flat") return flatPos(hub.lat, hub.lng, SCN_LABEL_LIFT_FLAT);
+    return latLonToXYZ(hub.lat, hub.lng, SCN_GLOBE_RADIUS * SCN_LABEL_RADIUS);
+  }
+
+  function updateLabels() {
+    if (labelsHidden || destroyed) {
+      for (const r of labelRecs) r.el.style.opacity = "0";
+      return;
+    }
+    const { cols, rows, cellAspect } = gridDims();
+    const rect = host.getBoundingClientRect();
+    const cellW = rect.width / cols, cellH = rect.height / rows;
+    const placed = [];
+    for (const rec of labelRecs) {
+      const [col, row, depth] = camera.project(labelAnchor(rec.hub), cols, rows, cellAspect);
+      let show = false;
+      // depth > 0 = front-facing in glyphcss 0.0.9 (verified empirically: the
+      // world-example's `depth < 0` convention is inverted in this release).
+      if (depth > 0 && Number.isFinite(col)) {
+        const px = col * cellW, py = row * cellH;
+        if (px >= 0 && px <= rect.width && py >= 0 && py <= rect.height) {
+          if (!rec.w) rec.w = rec.el.getBoundingClientRect().width || (rec.hub.name.length + 1) * 8 + 8;
+          const w = rec.w, h = 16;
+          const r = { x: px - w / 2, y: py - h / 2, w, h };
+          const overlaps = placed.some((p) =>
+            !(r.x + r.w < p.x || r.x > p.x + p.w || r.y + r.h < p.y || r.y > p.y + p.h));
+          if (!overlaps) {
+            placed.push(r);
+            show = true;
+            rec.el.style.left = `${px}px`;
+            rec.el.style.top = `${py}px`;
+          }
+        }
+      }
+      rec.el.style.opacity = show ? "0.92" : "0";
+    }
+  }
+
+  // ── globe ↔ flat morph ────────────────────────────────────────────────────
+  function startMorph(target) {
+    morphTargetView = target;
+    labelsHidden = true;
+    updateLabels();
+    // Dynamic layers hide during the transition; rebuilt in finishMorph.
+    if (arcsHandle) { arcsHandle.dispose(); arcsHandle = null; }
+    if (hubsHandle) { hubsHandle.dispose(); hubsHandle = null; }
+    routesGeom = [];
+    parkAllParticles();
+
+    const fromCam = { rotX: camera.rotX, rotY: camera.rotY };
+    let toCam;
+    if (target === "flat") {
+      savedGlobeCam = fromCam;          // restore this orbit when coming back
+      toCam = { ...SCN_FLAT_CAM };
+    } else {
+      toCam = { ...savedGlobeCam };
+    }
+
+    if (morphDegraded) { runFallback(target, toCam); return; }
+
+    const t0 = performance.now();
+    const stepMs = SCN_MORPH_MS / SCN_MORPH_FRAMES;
+    let firstFrame = true;
+    const step = () => {
+      if (destroyed) return;
+      const t = clamp((performance.now() - t0) / SCN_MORPH_MS, 0, 1);
+      const e = t * t * (3 - 2 * t); // smoothstep ease
+      const geoT = target === "flat" ? e : 1 - e;
+      camera.rotX = fromCam.rotX + (toCam.rotX - fromCam.rotX) * e;
+      camera.rotY = fromCam.rotY + (toCam.rotY - fromCam.rotY) * e;
+      const cost0 = performance.now();
+      swapWorld(worldPolysAt(geoT));
+      scene.rerender();
+      const cost = performance.now() - cost0;
+      // Frame-time guard: if a rebuild+render frame blows the budget, degrade
+      // permanently to the cheap shrink/swap/grow crossfade.
+      if (firstFrame && cost > SCN_MORPH_FRAME_BUDGET_MS) {
+        morphDegraded = true;
+        runFallback(target, toCam);
+        return;
+      }
+      firstFrame = false;
+      if (t >= 1) finishMorph(target);
+      else morphTimer = setTimeout(step, stepMs);
+    };
+    step();
+  }
+
+  // Fallback "crossfade": shrink the world mesh to vanishing, hard-swap the
+  // geometry + camera, then grow back. setTransform-only, so it stays cheap.
+  function runFallback(target, toCam) {
+    const F = SCN_MORPH_FALLBACK_FRAMES;
+    let i = 0;
+    const shrink = () => {
+      if (destroyed) return;
+      i++;
+      worldHandle.setTransform({ scale: Math.max(0.03, 1 - i / F) });
+      scene.rerender();
+      if (i < F) { morphTimer = setTimeout(shrink, SCN_MORPH_FALLBACK_STEP_MS); return; }
+      camera.rotX = toCam.rotX;
+      camera.rotY = toCam.rotY;
+      swapWorld(worldPolysAt(target === "flat" ? 1 : 0));
+      worldHandle.setTransform({ scale: 0.03 });
+      i = 0;
+      grow();
+    };
+    const grow = () => {
+      if (destroyed) return;
+      i++;
+      worldHandle.setTransform({ scale: Math.min(1, 0.03 + 0.97 * (i / F)) });
+      scene.rerender();
+      if (i < F) morphTimer = setTimeout(grow, SCN_MORPH_FALLBACK_STEP_MS);
+      else finishMorph(target);
+    };
+    shrink();
+  }
+
+  function finishMorph(target) {
+    morphTimer = null;
+    view = target;
+    morphTargetView = null;
+    swapWorld(worldPolysAt(view === "flat" ? 1 : 0));
+    worldHandle.setTransform({ scale: 1 });
+    labelsHidden = false;
+    if (currentYear != null && years[currentYear]) {
+      rebuildYearVisuals();             // rerenders + updates labels
+    } else {
+      scene.rerender();
+      updateLabels();
+    }
+    if (pendingView && pendingView !== view) {
+      const next = pendingView;
+      pendingView = null;
+      startMorph(next);
+    } else {
+      pendingView = null;
+    }
+  }
+
+  // ── interaction (verbatim world-example patterns) ─────────────────────────
+  // Screen pixels subtended by one world unit at the current zoom, so drag
+  // rotation tracks the cursor 1:1.
+  function pixelsPerUnit() {
+    const { cols, rows, cellAspect } = gridDims();
+    const rect = host.getBoundingClientRect();
+    const a = camera.project([0, 0, 0], cols, rows, cellAspect);
+    // Max over the three world axes: a single axis can be arbitrarily
+    // foreshortened at this camera pitch (the +Z pole axis shrinks ~2.4× at
+    // rotX 25), which made drags overshoot; the max is close to the true
+    // on-screen sphere radius per world unit.
+    let best = 1;
+    for (const axis of [[1, 0, 0], [0, 1, 0], [0, 0, 1]]) {
+      const b = camera.project(axis, cols, rows, cellAspect);
+      const dCol = (b[0] - a[0]) * (rect.width / cols);
+      const dRow = (b[1] - a[1]) * (rect.height / rows);
+      best = Math.max(best, Math.hypot(dCol, dRow));
+    }
+    return best;
+  }
+
+  let activePtr = null;
+  let lastX = 0, lastY = 0;
+
+  const onPointerDown = (e) => {
+    if (activePtr !== null) return;
+    activePtr = e.pointerId;
+    lastX = e.clientX;
+    lastY = e.clientY;
+    // Capture on the stable host, NOT e.target: every rerender replaces the
+    // <pre> contents, which would destroy a captured child mid-drag.
+    host.setPointerCapture(e.pointerId);
+  };
+  const onPointerMove = (e) => {
+    if (activePtr !== e.pointerId) return;
+    const dx = e.clientX - lastX;
+    const dy = e.clientY - lastY;
+    lastX = e.clientX;
+    lastY = e.clientY;
+    // Flat view locks the camera angle (wheel zoom only); morphs own the camera.
+    if (view !== "globe" || morphing()) return;
+    const degPerPx = (1 / pixelsPerUnit()) * (180 / Math.PI);
+    // Signs flipped vs. the world example: with +sin(lon) geography (see
+    // latLonToXYZ) and glyphcss 0.0.9's camera, both axes must decrease for
+    // the globe to follow the cursor (verified by dragging + label tracking).
+    camera.rotY -= dx * degPerPx;
+    camera.rotX -= dy * degPerPx;
+    scene.rerender();
+    updateLabels();
+  };
+  const onPointerRelease = (e) => {
+    if (activePtr !== e.pointerId) return;
+    activePtr = null;
+    try { host.releasePointerCapture(e.pointerId); } catch {}
+  };
+  const onWheel = (e) => {
+    e.preventDefault();
+    const delta = e.deltaY * 0.001;
+    camera.zoom = clamp(camera.zoom * (1 - delta), SCN_ZOOM_MIN, SCN_ZOOM_MAX);
+    scene.rerender();
+    updateLabels();
+  };
+  host.addEventListener("pointerdown", onPointerDown);
+  host.addEventListener("pointermove", onPointerMove);
+  host.addEventListener("pointerup", onPointerRelease);
+  host.addEventListener("pointercancel", onPointerRelease);
+  host.addEventListener("wheel", onWheel, { passive: false });
+
+  const onVisibility = () => { hiddenPaused = document.hidden; };
+  document.addEventListener("visibilitychange", onVisibility);
+
+  // autoSize re-rasterises the scene itself; labels just need repositioning.
+  let resizeTimer = null;
+  const onResize = () => {
+    if (resizeTimer) clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(() => { resizeTimer = null; updateLabels(); }, 80);
+  };
+  window.addEventListener("resize", onResize);
+
+  // initial paint
+  scene.rerender();
+  updateLabels();
+
+  // ── public API ────────────────────────────────────────────────────────────
+  return {
+    setYear(year) {
+      currentYear = year;
+      if (morphing()) return;           // applied by finishMorph
+      rebuildYearVisuals();
+    },
+    setView(next) {
+      if (next !== "globe" && next !== "flat") return;
+      if (morphing()) { pendingView = next; return; }
+      if (next === view) return;
+      startMorph(next);
+    },
+    getView() {
+      return morphTargetView ?? view;
+    },
+    setPaused(p) {
+      paused = !!p;
+    },
+    destroy() {
+      destroyed = true;
+      clearInterval(tickTimer);
+      if (morphTimer) clearTimeout(morphTimer);
+      if (resizeTimer) clearTimeout(resizeTimer);
+      host.removeEventListener("pointerdown", onPointerDown);
+      host.removeEventListener("pointermove", onPointerMove);
+      host.removeEventListener("pointerup", onPointerRelease);
+      host.removeEventListener("pointercancel", onPointerRelease);
+      host.removeEventListener("wheel", onWheel);
+      document.removeEventListener("visibilitychange", onVisibility);
+      window.removeEventListener("resize", onResize);
+      for (const rec of labelRecs) rec.el.remove();
+      if (arcsHandle) arcsHandle.dispose();
+      if (hubsHandle) hubsHandle.dispose();
+      for (const key of Object.keys(pools)) for (const h of pools[key]) h.dispose();
+      if (worldHandle) worldHandle.dispose();
+      scene.destroy();
+    },
+  };
+}
+
+// ============================================================================
+// palette.js — year-driven ink/paper duotone drift + [ INVERT ] (plain
+// fragment, no import/export). Anchors are the 1bit game's four room
+// duotones (RoomConfig.ts); the 2020→2025 deflation narrative slides
+// ABSORPTION → IN_BETWEEN → INFO_OVERFLOW → POLARIZED. Only the CSS
+// variables --paper/--ink move; scene polygon luminances never change,
+// so INVERT and the drift cost nothing in the renderer.
+// ============================================================================
+
+const PALETTE_ROOMS = {
+  ABSORPTION:    { paper: "#F0EED4", ink: "#221E0A" },   // 入神 / amber room
+  IN_BETWEEN:    { paper: "#EADDF3", ink: "#1C1228" },   // 紫灰 transitional
+  INFO_OVERFLOW: { paper: "#DCEDF2", ink: "#0A1A22" },   // 冷青 data overload
+  POLARIZED:     { paper: "#F3E9E4", ink: "#1E0C0E" },   // 出神 / warm-red
+};
+
+function paletteHexToRgb(hex) {
+  const v = parseInt(hex.slice(1), 16);
+  return [(v >> 16) & 255, (v >> 8) & 255, v & 255];
+}
+function paletteMix(hexA, hexB, t) {
+  const a = paletteHexToRgb(hexA), b = paletteHexToRgb(hexB);
+  const c = a.map((ch, i) => Math.round(ch + (b[i] - ch) * t));
+  return "#" + c.map((ch) => Math.max(0, Math.min(255, ch)).toString(16).padStart(2, "0")).join("");
+}
+function paletteMixStop(sa, sb, t) {
+  return { paper: paletteMix(sa.paper, sb.paper, t), ink: paletteMix(sa.ink, sb.ink, t) };
+}
+
+// Six anchor stops; 2021/2024 are midpoints between neighbouring rooms.
+const PALETTE_YEAR_STOPS = {
+  2020: PALETTE_ROOMS.ABSORPTION,
+  2021: paletteMixStop(PALETTE_ROOMS.ABSORPTION, PALETTE_ROOMS.IN_BETWEEN, 0.5),
+  2022: PALETTE_ROOMS.IN_BETWEEN,
+  2023: PALETTE_ROOMS.INFO_OVERFLOW,
+  2024: paletteMixStop(PALETTE_ROOMS.INFO_OVERFLOW, PALETTE_ROOMS.POLARIZED, 0.5),
+  2025: PALETTE_ROOMS.POLARIZED,
+};
+
+const paletteEngine = (() => {
+  const root = document.documentElement;
+  let stop = PALETTE_YEAR_STOPS[2023];           // matches the :root boot values
+  let inverted = false;
+  let cur = { paper: stop.paper, ink: stop.ink };
+  let raf = null;
+
+  const target = () => (inverted ? { paper: stop.ink, ink: stop.paper } : stop);
+
+  function apply(p) {
+    cur = p;
+    root.style.setProperty("--paper", p.paper);
+    root.style.setProperty("--ink", p.ink);
+  }
+
+  function animateTo(next, ms) {
+    if (raf !== null) { cancelAnimationFrame(raf); raf = null; }
+    // Hidden tabs get no rAF ticks, which would leave the palette frozen
+    // mid-drift until the tab is next shown — snap instead.
+    if (ms <= 0 || document.hidden) { apply(next); return; }
+    const from = { paper: cur.paper, ink: cur.ink };
+    const t0 = performance.now();
+    const step = (now) => {
+      const t = Math.min(1, (now - t0) / ms);
+      const e = t * t * (3 - 2 * t); // smoothstep
+      apply(paletteMixStop(from, next, e));
+      raf = t < 1 ? requestAnimationFrame(step) : null;
+    };
+    raf = requestAnimationFrame(step);
+  }
+
+  apply(target());
+  return {
+    setYear(year, ms = 600) {
+      stop = PALETTE_YEAR_STOPS[year] ?? stop;
+      animateTo(target(), ms);
+    },
+    toggleInvert(ms = 300) {
+      inverted = !inverted;
+      animateTo(target(), ms);
+      return inverted;
+    },
+  };
+})();
+
+// ════════════════════════════════════════════════════════════════════
+// CHINA-EU FLOW ASCII · ui.js — plain JS fragment (no import/export)
+//
+// initUI({ sceneApi, hubs, years, yearList, initialYear })
+//   Binds the static shell DOM (panels, timeline, modal, view toggle).
+//   Queries elements by id only; the sole dynamic population happens in
+//   the two designated empty hosts (#volume-chart, #timeline-years) via
+//   createElement — the shell markup itself is never rebuilt.
+//
+// TUI frame chrome: every [data-frame] panel owns a .tui-top/.tui-bottom
+// row; tuiBuildFrame renders real box-drawing character rows into them
+// (single ┌─┐ / double ╔═╗ per data-frame, title embedded DOS-style) and
+// locks the panel width to the 8px character grid.
+// ════════════════════════════════════════════════════════════════════
+
+const TUI_CELL = 8;   // VGA 8×16 advance at font-size 16px
+
+function tuiBuildFrame(panel) {
+  const top = panel.querySelector(":scope > .tui-top");
+  const bot = panel.querySelector(":scope > .tui-bottom");
+  if (!top || !bot) return;
+  const dbl = panel.dataset.frame === "double";
+  const [tl, hz, tr, bl, br] = dbl
+    ? ["╔", "═", "╗", "╚", "╝"]
+    : ["┌", "─", "┐", "└", "┘"];
+  top.textContent = "";                            // frame rows must not hold the
+  bot.textContent = "";                            // old width during re-measure
+  panel.style.width = "";                          // re-measure natural width
+  const w = panel.getBoundingClientRect().width;
+  const cols = Math.max(6, Math.ceil(w / TUI_CELL));
+  panel.style.width = cols * TUI_CELL + "px";      // snap to the char grid
+  const inner = cols - 2;
+  const title = (panel.dataset.frameTitle || "").toUpperCase();
+  let head = hz.repeat(inner);
+  if (title && title.length + 4 <= inner) {
+    const lead = hz + " " + title + " ";
+    head = lead + hz.repeat(inner - lead.length);
+  }
+  top.textContent = tl + head + tr;
+  bot.textContent = bl + hz.repeat(inner) + br;
+}
+
+function tuiRefreshFrames() {
+  document.querySelectorAll("[data-frame]").forEach(tuiBuildFrame);
+}
+
+// ── character widget builders ─────────────────────────────────────────
+// Share bar: `SHEIN @@@@@@··· 65%` — fill glyph = the series' particle
+// encoding, empty = ·, percent right-aligned. Fixed track width in cells.
+const TUI_SHARE_W = 22;
+function tuiShareLine(name, frac, ch) {
+  const f = Math.max(0, Math.min(1, frac));
+  const n = Math.round(f * TUI_SHARE_W);
+  const pct = Math.round(f * 100) + "%";
+  return name.padEnd(6, " ") + ch.repeat(n) + "·".repeat(TUI_SHARE_W - n) + pct.padStart(5, " ");
+}
+
+// Saturation meter: `[####|···|···|···] 22% SATURATION`, | ticks at
+// 25/50/75% of the track.
+const TUI_METER_W = 16;
+function tuiMeterLine(pct) {
+  const n = Math.round((Math.max(0, Math.min(100, pct)) / 100) * TUI_METER_W);
+  let track = "";
+  for (let i = 0; i < TUI_METER_W; i++) {
+    const tick = i === TUI_METER_W / 4 || i === TUI_METER_W / 2 || i === (3 * TUI_METER_W) / 4;
+    track += i < n ? "#" : (tick ? "|" : "·");
+  }
+  return "[" + track + "] " + pct + "% SATURATION";
+}
+
+// Static scale row under the meter: 0 / 7.5M (true midpoint) / 15M.
+function tuiMeterScale() {
+  const arr = new Array(TUI_METER_W + 2).fill(" ");
+  const put = (s, at) => {
+    for (let i = 0; i < s.length; i++) {
+      if (at + i >= 0 && at + i < arr.length) arr[at + i] = s[i];
+    }
+  };
+  put("0", 1);
+  put("7.5M", 1 + TUI_METER_W / 2 - 2);
+  put("15M", TUI_METER_W - 1);
+  return arr.join("") + " PKG";
+}
+
+function initUI({ sceneApi, hubs, years, yearList, initialYear }) {
+  const $ = (id) => document.getElementById(id);
+
+  const els = {
+    // left panel — tabs & panes
+    tabAnnual: $("tab-annual"),
+    tabDaily: $("tab-daily"),
+    paneAnnual: $("pane-annual"),
+    paneDaily: $("pane-daily"),
+    // left panel — annual
+    statVolume: $("stat-volume"),
+    statGrowth: $("stat-growth"),
+    volumeChart: $("volume-chart"),
+    // left panel — daily
+    statDaily: $("stat-daily"),
+    meterLine: $("daily-meter-line"),
+    meterScale: $("daily-meter-scale"),
+    // left panel — shares & narrative
+    sheinLine: $("share-shein-line"),
+    temuLine: $("share-temu-line"),
+    yearDesc: $("year-desc"),
+    yearEvent: $("year-event"),
+    routeCount: $("route-count"),
+    yearSources: $("year-sources"),
+    // timeline
+    playBtn: $("play-btn"),
+    timelineYears: $("timeline-years"),
+    viewGlobeBtn: $("view-globe-btn"),
+    viewFlatBtn: $("view-flat-btn"),
+    invertBtn: $("invert-btn"),
+    // modal
+    infoBtn: $("info-btn"),
+    modal: $("info-modal"),
+    modalClose: $("modal-close"),
+  };
+
+  const DAILY_MAX = 15; // saturation meter full scale, millions of parcels/day
+  const PLAY_STEP_MS = 2000; // autoplay: 2s per year
+  const VIEW_SWITCH_COOLDOWN_MS = 900; // let the ~800ms morph settle
+
+  let currentYear = yearList.includes(initialYear) ? initialYear : yearList[0];
+  let playTimer = null;
+  let lastViewSwitch = 0;
+
+  // ── Build year columns (█ character chart) + timeline year buttons ──
+  const maxVolume = Math.max(...yearList.map((y) => years[y].rawVolume));
+  const VOL_ROWS = 8; // character rows per column
+  const volCols = new Map(); // year → <button class="vol-col">
+  const yearBtns = new Map(); // year → <button class="year-btn">
+
+  for (const y of yearList) {
+    // bar-chart column: █ blocks stacked bottom-up, 2 cells wide,
+    // two-digit year underneath; the whole column is the click target.
+    const col = document.createElement("button");
+    col.type = "button";
+    col.className = "vol-col";
+    col.title = "Switch to " + y;
+    const filled = Math.max(1, Math.round((years[y].rawVolume / maxVolume) * VOL_ROWS));
+    const rows = [];
+    for (let r = VOL_ROWS; r >= 1; r--) rows.push(r <= filled ? "██" : "  ");
+    const bars = document.createElement("span");
+    bars.className = "vol-bars";
+    bars.textContent = rows.join("\n");
+    const lab = document.createElement("span");
+    lab.className = "vol-year";
+    lab.textContent = String(y).slice(2);
+    col.append(bars, lab);
+    col.addEventListener("click", () => {
+      stopPlayback();
+      setYear(y);
+    });
+    els.volumeChart.appendChild(col);
+    volCols.set(y, col);
+
+    // timeline year button — [ 2020 ], selected = reverse video
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "year-btn tui-btn";
+    btn.textContent = "[ " + y + " ]";
+    btn.addEventListener("click", () => {
+      stopPlayback();
+      setYear(y);
+    });
+    els.timelineYears.appendChild(btn);
+    yearBtns.set(y, btn);
+  }
+
+  // static meter scale row (0 · 7.5M midpoint · 15M full scale)
+  els.meterScale.textContent = tuiMeterScale();
+
+  // ── Year switching: refresh every panel readout + scene ──────────
+  function setYear(y) {
+    currentYear = y;
+    const d = years[y];
+
+    // annual pane
+    els.statVolume.textContent = d.volume;
+    els.statGrowth.textContent = d.growth + " YoY";
+
+    // daily pane — character meter
+    els.statDaily.textContent = d.dailyAvg;
+    const pct = Math.max(0, Math.min(100, Math.round((d.rawDaily / DAILY_MAX) * 100)));
+    els.meterLine.textContent = tuiMeterLine(pct);
+
+    // platform shares — @/* character bars (same encoding as the scene)
+    els.sheinLine.textContent = tuiShareLine("SHEIN", d.sheinShare, "@");
+    els.temuLine.textContent = tuiShareLine("TEMU", d.temuShare, "*");
+
+    // narrative (event line gets its ">> " prefix from CSS ::before)
+    els.yearDesc.textContent = d.desc;
+    els.yearEvent.textContent = d.event;
+    els.routeCount.textContent = "ACTIVE ROUTES: " + d.activeRoutes.length;
+    els.yearSources.textContent = d.sources;
+
+    // highlight current year in chart + timeline
+    for (const [yr, col] of volCols) col.classList.toggle("active", yr === y);
+    for (const [yr, btn] of yearBtns) btn.classList.toggle("active", yr === y);
+
+    paletteEngine.setYear(y);   // duotone drift follows the timeline
+    sceneApi.setYear(y);
+  }
+
+  // ── ANNUAL / DAILY tabs ───────────────────────────────────────────
+  function setMode(mode) {
+    const annual = mode === "annual";
+    els.tabAnnual.classList.toggle("active", annual);
+    els.tabDaily.classList.toggle("active", !annual);
+    els.tabAnnual.setAttribute("aria-selected", String(annual));
+    els.tabDaily.setAttribute("aria-selected", String(!annual));
+    els.paneAnnual.hidden = !annual;
+    els.paneDaily.hidden = annual;
+  }
+  els.tabAnnual.addEventListener("click", () => setMode("annual"));
+  els.tabDaily.addEventListener("click", () => setMode("daily"));
+
+  // ── Autoplay: [ |> PLAY ] steps 2s/year, stops at the last year ───
+  function stopPlayback() {
+    if (!playTimer) return;
+    clearInterval(playTimer);
+    playTimer = null;
+    els.playBtn.textContent = "[ |> PLAY ]";
+    els.playBtn.classList.remove("playing");
+  }
+
+  function startPlayback() {
+    const last = yearList[yearList.length - 1];
+    // pressing play while parked on the final year restarts from the top
+    if (currentYear >= last) setYear(yearList[0]);
+    els.playBtn.textContent = "[ [] STOP ]";
+    els.playBtn.classList.add("playing");
+    playTimer = setInterval(() => {
+      const next = yearList[yearList.indexOf(currentYear) + 1];
+      if (next === undefined) {
+        stopPlayback();
+        return;
+      }
+      setYear(next);
+      if (next === last) stopPlayback(); // reached 2025 → stop
+    }, PLAY_STEP_MS);
+  }
+
+  els.playBtn.addEventListener("click", () => {
+    if (playTimer) stopPlayback();
+    else startPlayback();
+  });
+
+  // ── [ GLOBE ] / [ FLAT MAP ] view toggle ──────────────────────────
+  function syncViewButtons(view) {
+    els.viewGlobeBtn.classList.toggle("active", view === "globe");
+    els.viewFlatBtn.classList.toggle("active", view === "flat");
+  }
+
+  function requestView(view) {
+    const now = Date.now();
+    // debounce: ignore clicks while the previous morph is still running
+    if (now - lastViewSwitch < VIEW_SWITCH_COOLDOWN_MS) return;
+    if (sceneApi.getView() === view) {
+      syncViewButtons(view);
+      return;
+    }
+    lastViewSwitch = now;
+    sceneApi.setView(view);
+    syncViewButtons(view);
+  }
+
+  els.viewGlobeBtn.addEventListener("click", () => requestView("globe"));
+  els.viewFlatBtn.addEventListener("click", () => requestView("flat"));
+
+  // ── [ INVERT ] — swap ink/paper (button + keyboard "i") ───────────
+  function toggleInvert() {
+    const on = paletteEngine.toggleInvert();
+    els.invertBtn.classList.toggle("active", on);
+  }
+  els.invertBtn.addEventListener("click", toggleInvert);
+
+  // ── INFO & CONTEXT modal ──────────────────────────────────────────
+  function modalOpen() {
+    return els.modal.classList.contains("active");
+  }
+  function openModal() {
+    stopPlayback(); // no year stepping behind the overlay
+    els.modal.classList.add("active");
+    els.modal.setAttribute("aria-hidden", "false");
+    sceneApi.setPaused(true); // particles idle while the scene is covered
+  }
+  function closeModal() {
+    els.modal.classList.remove("active");
+    els.modal.setAttribute("aria-hidden", "true");
+    sceneApi.setPaused(false);
+  }
+
+  els.infoBtn.addEventListener("click", () => (modalOpen() ? closeModal() : openModal()));
+  els.modalClose.addEventListener("click", closeModal);
+  els.modal.addEventListener("click", (e) => {
+    if (e.target === els.modal) closeModal(); // click on the paper margin around the dialog
+  });
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && modalOpen()) closeModal();
+    // !e.repeat: a held key must not re-toggle mid-lerp every OS repeat
+    if ((e.key === "i" || e.key === "I") && !e.repeat && !e.metaKey && !e.ctrlKey && !e.altKey) toggleInvert();
+  });
+
+  // ── Initial state ─────────────────────────────────────────────────
+  setMode("annual");
+  syncViewButtons(typeof sceneApi.getView === "function" ? sceneApi.getView() : "globe");
+  setYear(currentYear);
+
+  // character frames: draw once now, redraw when the viewport changes and
+  // once the VGA webfont finishes loading (max-content widths shift then).
+  tuiRefreshFrames();
+  let frameTimer = null;
+  window.addEventListener("resize", () => {
+    if (frameTimer) clearTimeout(frameTimer);
+    frameTimer = setTimeout(() => { frameTimer = null; tuiRefreshFrames(); }, 100);
+  });
+  if (document.fonts?.ready) document.fonts.ready.then(tuiRefreshFrames);
+
+  // small handle for the integrator / console debugging
+  return { setYear, stopPlayback };
+}
+
+// ============================================================================
+// boot — decode LAND_GRID, mount the scene, wire the UI (initial year 2023)
+// ============================================================================
+const LAND_BYTES = Uint8Array.from(atob(LAND_GRID.bits), (ch) => ch.charCodeAt(0));
+// Row-major from north (row 0 = 89.5°N), LSB-first within each byte.
+const landGrid = {
+  cols: LAND_GRID.cols,
+  rows: LAND_GRID.rows,
+  land(c, r) {
+    const i = r * LAND_GRID.cols + c;
+    return ((LAND_BYTES[i >> 3] >> (i & 7)) & 1) === 1;
+  },
+};
+
+const sceneApi = createLogisticsScene(document.getElementById("globe-host"), {
+  landGrid,
+  hubs: HUBS,
+  years: YEARS,
+});
+
+document.getElementById("loading")?.remove();
+
+// initUI ends by calling sceneApi.setYear(initialYear) — first scene populate.
+// Returned handle ({ setYear, stopPlayback }) kept for console debugging.
+const uiApi = initUI({ sceneApi, hubs: HUBS, years: YEARS, yearList: YEAR_LIST, initialYear: 2023 });
+
+// Entry panel: DOS title card over the already-rendered scene; the first
+// click removes it — hard cut, no fade (TUI transition discipline).
+const enterPanel = document.getElementById("enter-panel");
+if (enterPanel) {
+  enterPanel.addEventListener("click", () => enterPanel.remove(), { once: true });
+}
+</script>
+</body>
+</html>
