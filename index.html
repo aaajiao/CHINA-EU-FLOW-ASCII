@@ -29,7 +29,19 @@
      re-targets these on every year switch / invert toggle. */
   --paper: #DCEDF2;
   --ink: #0A1A22;
+  /* Cargo spot inks — the ONE sanctioned exception to the duotone: the two
+     parcel streams overprint the monochrome woodcut like riso spot colors.
+     Constant across the year drift; swapped to bright variants on invert
+     (paletteEngine toggles the .inverted class). */
+  --shein-ink: #C2410C;
+  --temu-ink: #0E7490;
 }
+:root.inverted {
+  --shein-ink: #FFA94D;
+  --temu-ink: #5BE3E0;
+}
+.k-shein { color: var(--shein-ink); }
+.k-temu  { color: var(--temu-ink); }
 
 *, *::before, *::after { box-sizing: border-box; }
 
@@ -661,7 +673,7 @@ strong { text-decoration: underline; }
         <span class="stat-label block-label">PLATFORM SHARE</span>
         <div id="share-shein-line" class="tui-chart"></div>
         <div id="share-temu-line" class="tui-chart"></div>
-        <div class="share-legend">@ = SHEIN   * = TEMU</div>
+        <div class="share-legend"><span class="k-shein">@ = SHEIN</span>   <span class="k-temu">* = TEMU</span></div>
       </section>
 
       <div class="tui-rule" aria-hidden="true"></div>
@@ -698,7 +710,7 @@ strong { text-decoration: underline; }
 </div>
 
 <!-- ── Footer: one character line ───────────────────────────────────── -->
-<footer id="ui-footer">@ = SHEIN &middot; * = TEMU &#9474; DATA: EUROSTAT &middot; EC &middot; IATA &middot; REUTERS &#9474; RENDERER: GLYPHCSS &#9474; DRAG=ORBIT SCROLL=ZOOM</footer>
+<footer id="ui-footer"><span class="k-shein">@ = SHEIN</span> &middot; <span class="k-temu">* = TEMU</span> &#9474; DATA: EUROSTAT &middot; EC &middot; IATA &middot; REUTERS &#9474; RENDERER: GLYPHCSS &#9474; DRAG=ORBIT SCROLL=ZOOM</footer>
 
 <!-- ── INFO & CONTEXT modal (DOS double-frame dialog) ───────────────── -->
 <div id="info-modal" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="modal-title">
@@ -739,8 +751,8 @@ strong { text-decoration: underline; }
 
             <h3>VISUALIZATION KEY</h3>
             <ul>
-              <li><strong>@ HEAVY GLYPHS</strong> &mdash; Shein parcel flow (dense ink)</li>
-              <li><strong>* LIGHT GLYPHS</strong> &mdash; Temu parcel flow (sparse ink)</li>
+              <li><strong class="k-shein">@ HEAVY GLYPHS</strong> &mdash; Shein parcel flow (vermillion spot ink)</li>
+              <li><strong class="k-temu">* LIGHT GLYPHS</strong> &mdash; Temu parcel flow (cyan spot ink)</li>
               <li><strong>PILLARS</strong> &mdash; logistics hubs; pillar height = hub volume</li>
               <li><strong>ARCS</strong> &mdash; active China&ndash;EU air-freight routes</li>
             </ul>
@@ -1004,6 +1016,15 @@ const SCN_TRAIL_DT          = 0.028;   // route-t spacing between tail ghosts
 const SCN_TRAIL_SCALES      = [0.72, 0.5, 0.34];
 const SCN_PULSE_HZ          = 2.2;     // footprint pulse frequency
 const SCN_PULSE_AMP         = 0.4;     // scale swing: 1±0.4
+// Colored cargo marks: a projected DOM span (@ / *) rides on each particle
+// core in the series' spot ink — same camera.project mechanism as the hub
+// labels, so the scene itself stays monochrome and the duotone drift is
+// untouched. Trails stay in-scene (monochrome smoke behind a colored parcel).
+const SCN_CARGO_SPAN_CSS =
+  "position:absolute;transform:translate(-50%,-50%);white-space:pre;" +
+  "font:16px 'IBM VGA','Courier New',monospace;line-height:1;" +
+  "opacity:0;pointer-events:none;z-index:4;";
+const SCN_CARGO_GLYPH = { shein: "@", temu: "*" };
 const SCN_SHEIN_COLOR = "#ffffff";     // max luma → heaviest glyph (@)
 const SCN_TEMU_COLOR  = "#989898";     // mid luma → '+'/'*' glyph (legend: * TEMU), lighter than land
 
@@ -1418,6 +1439,7 @@ function createLogisticsScene(host, { landGrid, hubs, years }) {
   function parkGroup(g) {
     parkHandle(g.core);
     for (const h of g.trails) parkHandle(h);
+    if (g.span) g.span.style.opacity = "0";
   }
 
   function parkAllParticles() {
@@ -1468,7 +1490,11 @@ function createLogisticsScene(host, { landGrid, hubs, years }) {
           position: SCN_PARTICLE_PARK.slice(),
           scale: 0.001,
         });
-        pool.push({ core: mk(), trails: Array.from({ length: SCN_TRAIL_COUNT }, mk) });
+        const span = document.createElement("span");
+        span.textContent = SCN_CARGO_GLYPH[key];
+        span.style.cssText = SCN_CARGO_SPAN_CSS + "color:var(--" + key + "-ink);";
+        labelLayer.appendChild(span);
+        pool.push({ core: mk(), trails: Array.from({ length: SCN_TRAIL_COUNT }, mk), span });
       }
       for (let i = 0; i < pool.length; i++) {
         if (i < counts[key]) {
@@ -1491,7 +1517,8 @@ function createLogisticsScene(host, { landGrid, hubs, years }) {
   function placeParticle(p, nowMs) {
     const pulse = 1 + SCN_PULSE_AMP *
       Math.sin((nowMs / 1000) * SCN_PULSE_HZ * Math.PI * 2 + p.phase);
-    p.grp.core.setTransform({ position: sampleRoute(p.route, p.t), scale: pulse });
+    p.pos = sampleRoute(p.route, p.t);   // cached for the cargo-mark overlay
+    p.grp.core.setTransform({ position: p.pos, scale: pulse });
     for (let k = 0; k < p.grp.trails.length; k++) {
       const tt = p.t - SCN_TRAIL_DT * (k + 1);
       if (tt <= 0) parkHandle(p.grp.trails[k]);
@@ -1520,6 +1547,7 @@ function createLogisticsScene(host, { landGrid, hubs, years }) {
       }
       placeParticle(p, now);
     }
+    updateCargoOverlay();
     scene.rerender();
   }, SCN_PARTICLE_TICK_MS);
 
@@ -1616,6 +1644,34 @@ function createLogisticsScene(host, { landGrid, hubs, years }) {
         }
       }
       rec.el.style.opacity = show ? "0.92" : "0";
+    }
+    updateCargoOverlay();
+  }
+
+  // Colored cargo marks track the particle cores through every camera change
+  // (this runs from updateLabels) and every particle tick. Same projection
+  // and depth>0 front-face convention as the labels.
+  function updateCargoOverlay() {
+    if (destroyed) return;
+    const { cols, rows, cellAspect } = gridDims();
+    const rect = host.getBoundingClientRect();
+    const cellW = rect.width / cols, cellH = rect.height / rows;
+    for (const p of particles) {
+      const el = p.grp.span;
+      if (!el) continue;
+      let show = false;
+      if (!labelsHidden && p.pos) {
+        const [col, row, depth] = camera.project(p.pos, cols, rows, cellAspect);
+        if (depth > 0 && Number.isFinite(col)) {
+          const px = col * cellW, py = row * cellH;
+          if (px >= -8 && px <= rect.width + 8 && py >= -8 && py <= rect.height + 8) {
+            el.style.left = `${px}px`;
+            el.style.top = `${py}px`;
+            show = true;
+          }
+        }
+      }
+      el.style.opacity = show ? "1" : "0";
     }
   }
 
@@ -1840,6 +1896,7 @@ function createLogisticsScene(host, { landGrid, hubs, years }) {
       for (const key of Object.keys(pools)) for (const g of pools[key]) {
         g.core.dispose();
         for (const h of g.trails) h.dispose();
+        g.span?.remove();
       }
       if (worldHandle) worldHandle.dispose();
       scene.destroy();
@@ -1925,6 +1982,8 @@ const paletteEngine = (() => {
     },
     toggleInvert(ms = 300) {
       inverted = !inverted;
+      // Cargo spot inks pick their bright/dark variants via this class.
+      document.documentElement.classList.toggle("inverted", inverted);
       animateTo(target(), ms);
       return inverted;
     },
@@ -1979,13 +2038,16 @@ function tuiRefreshFrames() {
 
 // ── character widget builders ─────────────────────────────────────────
 // Share bar: `SHEIN @@@@@@··· 65%` — fill glyph = the series' particle
-// encoding, empty = ·, percent right-aligned. Fixed track width in cells.
+// encoding (tinted in the series' spot ink via cls), empty = ·, percent
+// right-aligned. Fixed track width in cells; the span doesn't shift layout.
 const TUI_SHARE_W = 22;
-function tuiShareLine(name, frac, ch) {
+function tuiShareLine(name, frac, ch, cls) {
   const f = Math.max(0, Math.min(1, frac));
   const n = Math.round(f * TUI_SHARE_W);
   const pct = Math.round(f * 100) + "%";
-  return name.padEnd(6, " ") + ch.repeat(n) + "·".repeat(TUI_SHARE_W - n) + pct.padStart(5, " ");
+  return name.padEnd(6, " ") +
+    '<span class="' + cls + '">' + ch.repeat(n) + "</span>" +
+    "·".repeat(TUI_SHARE_W - n) + pct.padStart(5, " ");
 }
 
 // Saturation meter: `[####|···|···|···] 22% SATURATION`, | ticks at
@@ -2119,9 +2181,9 @@ function initUI({ sceneApi, hubs, years, yearList, initialYear }) {
     const pct = Math.max(0, Math.min(100, Math.round((d.rawDaily / DAILY_MAX) * 100)));
     els.meterLine.textContent = tuiMeterLine(pct);
 
-    // platform shares — @/* character bars (same encoding as the scene)
-    els.sheinLine.textContent = tuiShareLine("SHEIN", d.sheinShare, "@");
-    els.temuLine.textContent = tuiShareLine("TEMU", d.temuShare, "*");
+    // platform shares — @/* character bars (same encoding + spot ink as the scene)
+    els.sheinLine.innerHTML = tuiShareLine("SHEIN", d.sheinShare, "@", "k-shein");
+    els.temuLine.innerHTML = tuiShareLine("TEMU", d.temuShare, "*", "k-temu");
 
     // narrative (event line gets its ">> " prefix from CSS ::before)
     els.yearDesc.textContent = d.desc;

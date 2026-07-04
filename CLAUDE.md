@@ -29,7 +29,7 @@
 ## 1-bit 风格改造决定(2026-07-04)
 
 - **墨/纸双色调**:默认纸白底深色字(木刻感),提供 [ INVERT ] 切换(交换 --ink/--paper)。
-- **严格 1-bit**:任一时刻屏幕只有 ink/paper 两色。系列区分靠字符重量:Shein=重字符(@,高亮度材质)、Temu=轻字符(*,中亮度材质);无彩色粒子。
+- **双色调 + 货物专色**(2026-07-04 晚,应作者要求从"严格 1-bit"升级):地形/UI/框线保持 ink/paper 两色;**货物是唯一的例外**,以双墨套印(riso spot ink)方式叠印——Shein=朱色 `--shein-ink`(#C2410C,反色态 #FFA94D)、Temu=深青 `--temu-ink`(#0E7490,反色态 #5BE3E0)。实现:场景引擎保持单色(字符重量 @/* 区分),彩色标记是投影 DOM 覆盖层(`updateCargoOverlay`,与标签同一套 camera.project + depth>0 机制);反色变体靠 paletteEngine 切 `:root.inverted` 类。图例/份额条/modal 同步着色。专色不随年份漂移。
 - **年份→房间色调漂移**:2020 ABSORPTION 琥珀(paper #F0EED4/ink #221E0A)→ 2022 IN_BETWEEN 紫灰(#EADDF3/#1C1228)→ 2023 INFO_OVERFLOW 冷青(#DCEDF2/#0A1A22)→ 2025 POLARIZED 暖红(#F3E9E4/#1E0C0E),年份切换时平滑过渡。全部 UI 颜色走 CSS 变量 --ink/--paper。
 - **UI 语言保持英文**;扫描线覆盖层照搬游戏 main.css;进入面板(game 式标题+操作说明+CLICK TO ENTER)。
 
