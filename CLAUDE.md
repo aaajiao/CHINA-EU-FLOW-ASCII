@@ -87,6 +87,19 @@
 - **theme-color 跟随年份漂移**:一个防御性 IIFE 每秒把 `<meta name="theme-color">` 同步为当前 `--paper`;splash 仍用 manifest 的 `#000000` background_color(与图标黑底无缝)。name/short_name = `CHINA-EU FLOW ASCII` / `CN-EU FLOW`。
 - 集成方式:用一次性 Node 脚本从 workflow 输出 JSON 精确抽取 manifest/sw/head/registration 并写入(带**幂等守卫**;曾因重复插入过一次全部 PWA 块,已 `git checkout` 回滚+加守卫修复)。手动改 PWA 时注意别重复注入:`grep -c 'rel="manifest"' index.html` 应为 1。
 
+## PLAY → 引导式巡航(2026-07-05,workflow 实现+对抗评审后落地,commit 4e5e451)
+
+原 2s/年 `setInterval` 自动播放已替换为**引导式巡航**(guided tour):按 PLAY 后逐年走三种节拍,相机、口岸标注、左面板轮流成为焦点。作者已浏览器实测通过,**节奏(全程约 2 分 20 秒)已由作者认可——不要为了早期方案里的 "~72s" 估算去压缩 `TOUR_BEAT_*_MS` 常量**。
+
+- **节拍结构**(每年):Beat A 年份卡(setYear + 相机步进回 home 视角 + volume 数字 8 步 count-up,growth 徽标最后一步才出)→ Beat B 口岸聚焦 ×2(按当年 activeRoutes intensity 选主航线,先 src 后 dst;`prevFocused` 与上一年去重保证六年覆盖更多口岸)→ Beat C 语境(相机回 home + STRATEGIC CONTEXT 反白 + `>>` event 行打字机)。2025 之后出终幕卡(双线框:€3/件关税 12 Dec 2025 通过、2026-07-01 生效、de minimis 时代闭幕;3s 自动关或点按关)。
+- **停止/复原语义**:`stopPlayback` **保留原函数名与全部既有调用点**(年份按钮、柱状图列、openModal),函数体现在=取消巡航+同步复原(清 callout/标签强调/航线聚光/面板高亮/终幕卡,打字机残句恢复为全文);`requestView` 也先 stopPlayback。拖拽/滚轮(globe host)、年份、视图切换、modal、Escape 都停;**INVERT/`I` 不停**。相机中断时留在原地(用户抢走就归用户),自然结束由终幕卡步骤回 home。
+- **取消机制**:单一 `tourToken`(对象身份),每个 await 后复查;`sleep()` 在 `document.hidden` 时冻结时钟(只累计可见时间)——巡航在遮挡窗口下会暂停而非跳拍。`prefers-reduced-motion`:相机 snap、打字机瞬显,节拍时长不变。
+- **新 scene API**:`focusCamera(target,frames,stepMs)`(12 帧 setTimeout 步进 smoothstep,与 morph 同款纪律;用户 pointerdown 或 morph 开始即中止让位;**取消/被替代/销毁都会 settle Promise**——`settleFocus()` 防止 beat 协程悬挂在永不 resolve 的 await 上,这是评审抓到的真 bug)、`focusHub`(初猜 rotX≈lat/rotY≈lng,再对符号/±180 偏移候选做 `camera.project` 数值验证 + 坐标下降精调——**对 0.0.9 符号约定免疫,别改回解析公式**)、`setHubEmphasis`(必须在 `updateLabels` 内部应用才挺得过每帧重投影)、`setRouteSpotlight`(只重建 arcs 层,非相关航线用 `SCN_ARC_COLOR_DIM`;routesGeom/粒子不动)、callout 覆盖层(34 列盒绘卡,`camera.project` 定位+视口 clamp,满文本尺寸在 showCallout 时先量好,reveal 期间位置不漂)、`isMorphing()`/`getHomeCamera()`/`cancelFocus()`;`destroy()` 清理以上全部。
+- **FLAT 起播**:先 `setView("globe")` 再轮询 `isMorphing()` 等 morph 完成才开始;结束后不自动切回 FLAT。
+- **巡航文案红线**:`tourDesc`(12 个 hub,全大写、≤32 字符/行、纯定性、**禁止任何数字**);callout 的 TYPE 行 LHR 特判为 **"UK DESTINATION"**(post-Brexit,不能写 EU DESTINATION——评审抓到的事实错误);面板高亮箭头用 **► U+25BA**(CP437,内嵌 VGA 字体有此字形;U+25B6 ▶ 会 fallback 到系统字体破坏点阵观感)。
+- 时长常量集中在 ui 片段顶部:`TOUR_BEAT_A_MS 2500 / B 3500(每口岸) / C 3000 / ENDCARD 3000`;callout 打字 2 字符/16ms,event 行 60cps。
+- **改 `index.html` 必须同步 bump `sw.js` 的 `VERSION`**(当前 v2),否则老访客拿 SW 缓存旧 shell。
+
 ## 约束
 
 - 产物核心仍是自包含的 `index.html`(land grid + 字体内联,运行时只抓 glyphcss CDN);**PWA 化后新增 `manifest.webmanifest` / `sw.js` / `icons/` 三类 sidecar——这是"单文件"约束的既定例外**(PWA 本质需要独立的 service worker 与 manifest;icon 也不宜内联)。可视化逻辑本身仍单文件。陆地网格数据烘焙后内联进 HTML,不依赖运行时抓取 world-atlas。
