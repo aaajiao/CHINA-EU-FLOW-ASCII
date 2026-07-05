@@ -28,7 +28,7 @@
    ═══════════════════════════════════════════════════════════════════════ */
 
 // Bump this to invalidate the app-shell precache on the next activation.
-const VERSION = "v2";
+const VERSION = "v3";
 const APP_SHELL_CACHE = "cn-eu-flow-shell-" + VERSION;
 const RUNTIME_CACHE = "cn-eu-flow-runtime-" + VERSION;
 

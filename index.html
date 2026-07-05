@@ -657,6 +657,7 @@ strong { text-decoration: underline; }
           <li>[SCROLL] ZOOM</li>
           <li>[2020&ndash;2025] TIMELINE</li>
           <li>[I] INVERT</li>
+          <li>[S] SOUND</li>
         </ul>
         <p class="enter-note">CLICK TO ENTER</p>
       </div>
@@ -762,6 +763,7 @@ strong { text-decoration: underline; }
         <button id="view-globe-btn" class="tui-btn view-btn active" type="button">[ GLOBE ]</button>
         <button id="view-flat-btn" class="tui-btn view-btn" type="button">[ FLAT ]</button>
         <button id="invert-btn" class="tui-btn view-btn" type="button" aria-label="Invert ink and paper">[ INVERT ]</button>
+        <button id="snd-btn" class="tui-btn view-btn" type="button" aria-label="Toggle sound">[ SND ]</button>
       </div>
     </div>
   </div>
@@ -2336,6 +2338,378 @@ const paletteEngine = (() => {
 })();
 
 // ════════════════════════════════════════════════════════════════════
+// CHINA-EU FLOW ASCII · audio.js — procedural 1-bit sound (plain JS
+// fragment, no import/export). PC-speaker discipline: MONO, every tonal
+// voice is a SQUARE wave quantized to SND_SCALE; texture is filtered
+// white-noise bursts. No samples, no audio files, no network requests —
+// everything is synthesized with the Web Audio API at event time. Quiet
+// and reserved (museum piece, not a game). Inert without an AudioContext:
+// every method is a safe no-op and audio errors never reach the console.
+//
+//   const sound = createSoundEngine();      // never throws
+//   sound.unlock()          create/resume the AudioContext (user gesture)
+//   sound.play(name, opts)  fire-and-forget one-shot; no-op disabled/locked
+//   sound.setAmbientYear(y) retune the ambient bed to a year
+//   sound.duck(ms)          fade ambient to ~0, auto-restore after ms
+//   sound.restoreAmbient()  idempotent explicit un-duck (hideEndCard)
+//   sound.setEnabled(on)    toggle; suspends/resumes the context
+//   sound.enabled           getter
+//   window.__snd = { recent, state }        debug ring buffer (console-only)
+// ════════════════════════════════════════════════════════════════════
+
+// A=220 PC-speaker set; EVERY beep frequency must come from this table.
+const SND_SCALE   = [220, 330, 440, 495, 550, 660, 880];
+const SND_MASTER  = 0.4;
+const SND_AMB_BASE = 0.03;
+// Per-voice peak gains (all quiet). Keep the whole mix reserved.
+const SND_VOL = {
+  tick: 0.05, blip: 0.07, ping: 0.09, chirp: 0.07,
+  sweep: 0.06, thud: 0.2, boot: 0.08,
+};
+// Ambient lowpass cutoff per year (Hz) — mirrors the palette-room drift:
+// 2020 warm ~350 → 2023 cold ~900 → 2025 ~600 tense (tunable anchors).
+const SND_AMB_CUTOFF = { 2020: 350, 2021: 450, 2022: 620, 2023: 900, 2024: 760, 2025: 600 };
+
+function createSoundEngine() {
+  // Debug ring buffer — present even for the inert stub.
+  const recent = [];
+  const logEvt = (name) => {
+    recent.push({ name, t: Math.round(performance.now()) });
+    if (recent.length > 32) recent.shift();
+  };
+
+  const AC = window.AudioContext || window.webkitAudioContext;
+  if (!AC) {
+    // No Web Audio at all → inert stub. Page behaves exactly as before.
+    window.__snd = { recent, state: () => ({ ctx: "none", enabled: false }) };
+    return {
+      get enabled() { return false; },
+      unlock() {}, play() {}, setAmbientYear() {}, duck() {},
+      restoreAmbient() {}, setEnabled() { return false; },
+    };
+  }
+
+  let ctx = null, master = null, comp = null, noiseBuf = null;
+  let amb = null;                 // { src, lp, gain }
+  let ambYear = null;
+  let ambBase = SND_AMB_BASE;     // per-year full ambient level
+  let ambTimer = null;            // sparse-blip scheduler
+  let duckTimer = null;
+  let ducked = false;             // endcard duck
+  let modalHold = false;          // modal 50% hold (independent of duck)
+  let enabled = true;             // default ON, but LOCKED until unlock()
+  let lastTypeTick = 0;           // type.tick throttle clock
+
+  const running = () => !!ctx && ctx.state === "running";
+  const yearData = (y) => { try { return YEARS[y]; } catch (e) { return null; } };
+  const snapScale = (f) => {
+    let best = SND_SCALE[0];
+    for (const v of SND_SCALE) if (Math.abs(v - f) < Math.abs(best - f)) best = v;
+    return best;
+  };
+
+  // ── Master chain + shared noise buffer (built once, lazily) ──────────
+  function ensureCtx() {
+    if (ctx) return true;
+    try { ctx = new AC(); } catch (e) { ctx = null; return false; }
+    try {
+      master = ctx.createGain(); master.gain.value = SND_MASTER;
+      comp = ctx.createDynamicsCompressor();
+      comp.threshold.value = -24; comp.ratio.value = 4; comp.knee.value = 12;
+      master.connect(comp); comp.connect(ctx.destination);
+      noiseBuf = ctx.createBuffer(1, ctx.sampleRate, ctx.sampleRate);
+      const d = noiseBuf.getChannelData(0);
+      for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+      buildAmbient();
+    } catch (e) { /* partial init is still usable for one-shots */ }
+    return true;
+  }
+
+  function buildAmbient() {
+    try {
+      const src = ctx.createBufferSource(); src.buffer = noiseBuf; src.loop = true;
+      const lp = ctx.createBiquadFilter(); lp.type = "lowpass"; lp.frequency.value = 500;
+      const gain = ctx.createGain(); gain.gain.value = 0;
+      src.connect(lp); lp.connect(gain); gain.connect(master);
+      src.start();
+      amb = { src, lp, gain };
+      if (ambYear != null) applyAmbYear(ambYear, 0);
+    } catch (e) { amb = null; }
+  }
+
+  const ambScale = () => (ducked ? 0 : (modalHold ? 0.5 : 1));
+  function applyAmbGain(tau) {
+    if (!amb) return;
+    amb.gain.gain.setTargetAtTime(ambBase * ambScale(), ctx.currentTime, Math.max(0.02, tau));
+  }
+  function applyAmbYear(y, tau) {
+    const yd = yearData(y);
+    const rv = yd ? (yd.rawVolume ?? 3) : 3;
+    ambBase = SND_AMB_BASE * (0.6 + 0.4 * rv / 5.9);
+    if (!amb) return;
+    const cut = SND_AMB_CUTOFF[y] ?? 500;
+    const t = tau > 0 ? tau : 0.05;
+    amb.lp.frequency.setTargetAtTime(cut, ctx.currentTime, t);
+    applyAmbGain(t);
+  }
+
+  // ── Voice helpers (each ≤3 nodes, one-shot, self-disconnecting) ──────
+  function env(g, peak, ms) {
+    const now = ctx.currentTime, s = Math.max(0.004, ms / 1000);
+    const atk = Math.min(0.003, s * 0.4);
+    const p = g.gain;
+    p.setValueAtTime(0.0001, now);
+    p.exponentialRampToValueAtTime(Math.max(0.0004, peak), now + atk);
+    p.exponentialRampToValueAtTime(0.0001, now + s);
+  }
+  function beep(freq, ms, gain, glideTo) {
+    const osc = ctx.createOscillator(); osc.type = "square";
+    const g = ctx.createGain();
+    const now = ctx.currentTime, s = ms / 1000;
+    osc.frequency.setValueAtTime(freq, now);
+    if (glideTo) osc.frequency.exponentialRampToValueAtTime(Math.max(20, glideTo), now + s);
+    osc.connect(g); g.connect(master);
+    env(g, gain, ms);
+    osc.start(now); osc.stop(now + s + 0.03);
+    osc.onended = () => { try { osc.disconnect(); g.disconnect(); } catch (e) {} };
+  }
+  function tick(ms, cutoffHz, gain) {
+    const src = ctx.createBufferSource(); src.buffer = noiseBuf;
+    const bp = ctx.createBiquadFilter(); bp.type = "bandpass";
+    bp.frequency.value = Math.max(60, cutoffHz); bp.Q.value = 1;
+    const g = ctx.createGain();
+    src.connect(bp); bp.connect(g); g.connect(master);
+    const s = ms / 1000;
+    env(g, gain, ms);
+    src.start(ctx.currentTime, Math.random() * 0.9, s + 0.03);
+    src.onended = () => { try { src.disconnect(); bp.disconnect(); g.disconnect(); } catch (e) {} };
+  }
+  function sweep(fromHz, toHz, ms, gain) {
+    const src = ctx.createBufferSource(); src.buffer = noiseBuf; src.loop = true;
+    const lp = ctx.createBiquadFilter(); lp.type = "lowpass";
+    const g = ctx.createGain();
+    const now = ctx.currentTime, s = ms / 1000;
+    lp.frequency.setValueAtTime(Math.max(20, fromHz), now);
+    lp.frequency.exponentialRampToValueAtTime(Math.max(20, toHz), now + s);
+    src.connect(lp); lp.connect(g); g.connect(master);
+    g.gain.setValueAtTime(0.0001, now);
+    g.gain.exponentialRampToValueAtTime(Math.max(0.0004, gain), now + Math.min(0.12, s * 0.3));
+    g.gain.exponentialRampToValueAtTime(0.0001, now + s);
+    src.start(now); src.stop(now + s + 0.03);
+    src.onended = () => { try { src.disconnect(); lp.disconnect(); g.disconnect(); } catch (e) {} };
+  }
+  function thud(ms) {
+    const osc = ctx.createOscillator(); osc.type = "square";
+    const g = ctx.createGain();
+    const now = ctx.currentTime, s = ms / 1000;
+    osc.frequency.setValueAtTime(110, now);
+    osc.frequency.exponentialRampToValueAtTime(40, now + s);
+    osc.connect(g); g.connect(master);
+    g.gain.setValueAtTime(0.0001, now);
+    g.gain.exponentialRampToValueAtTime(SND_VOL.thud, now + 0.02);
+    g.gain.exponentialRampToValueAtTime(0.0001, now + s);
+    osc.start(now); osc.stop(now + s + 0.03);
+    osc.onended = () => { try { osc.disconnect(); g.disconnect(); } catch (e) {} };
+  }
+  // deferred one-shot that re-checks running() at fire time
+  const later = (ms, fn) => setTimeout(() => { if (running()) { try { fn(); } catch (e) {} } }, ms);
+
+  // ── Ambient sparse-blip scheduler (denser years blip more often) ─────
+  function scheduleBlip() {
+    if (ambTimer || !running() || !enabled || document.hidden) return;
+    const yd = yearData(ambYear);
+    const rd = yd ? (yd.rawDaily ?? 6) : 6;
+    const dense = Math.max(0, Math.min(1, (rd - 2) / 15)); // rawDaily 2.2..16.2
+    const mean = 8000 - dense * 5000;                       // 8s (sparse) → 3s (dense)
+    // jitter then clamp so blips stay inside the spec's 3–8s band in both directions
+    const wait = Math.max(3000, Math.min(8000, mean * (0.6 + Math.random() * 0.8)));
+    ambTimer = setTimeout(() => {
+      ambTimer = null;
+      if (running() && enabled && !document.hidden) {
+        tick(70, 1000 + Math.random() * 700, SND_AMB_BASE); // very quiet
+      }
+      scheduleBlip();
+    }, wait);
+  }
+  function stopBlip() { if (ambTimer) { clearTimeout(ambTimer); ambTimer = null; } }
+
+  function resumeIfWanted() {
+    if (!ctx || !enabled || document.hidden) return;
+    if (ctx.state !== "running") {
+      // ctx.resume() is async: state stays "suspended" synchronously, so arm the
+      // blip scheduler from the resolution (else it silently dies after any
+      // suspend→resume, and never starts on webkit where gestures start suspended).
+      try {
+        const p = ctx.resume();
+        if (p && typeof p.then === "function") p.then(() => { try { scheduleBlip(); } catch (e) {} }, () => {});
+        else scheduleBlip();
+      } catch (e) {}
+    } else {
+      scheduleBlip();
+    }
+  }
+
+  // ── Public: unlock ───────────────────────────────────────────────────
+  function unlock() {
+    try {
+      if (!ensureCtx()) return;
+      resumeIfWanted();
+    } catch (e) { /* audio never breaks the page */ }
+  }
+
+  // ── Public: duck / restore ─────────────────────────────────────────────
+  function duck(ms) {
+    try {
+      ducked = true;
+      applyAmbGain(0.12);
+      if (duckTimer) clearTimeout(duckTimer);
+      duckTimer = setTimeout(() => {
+        duckTimer = null; ducked = false; applyAmbGain(0.4);
+      }, Math.max(0, ms | 0));
+    } catch (e) {}
+  }
+  function restoreAmbient() {
+    try {
+      if (duckTimer) { clearTimeout(duckTimer); duckTimer = null; }
+      ducked = false;
+      applyAmbGain(0.3);
+    } catch (e) {}
+  }
+
+  // ── Public: setAmbientYear (safe pre-unlock; applied on resume) ────────
+  function setAmbientYear(y) {
+    try { ambYear = y; applyAmbYear(y, 0.6); } catch (e) {}
+  }
+
+  // ── Public: setEnabled ─────────────────────────────────────────────────
+  function setEnabled(on) {
+    enabled = !!on;
+    try {
+      if (!enabled) {
+        stopBlip();
+        // clear the modal hold now: a later modal.close would no-op while suspended,
+        // otherwise pinning the ambient bed at 50% for the rest of the session.
+        modalHold = false;
+        if (ctx && ctx.state === "running") ctx.suspend();
+      } else {
+        resumeIfWanted();
+        applyAmbGain(0.3);              // re-apply ambient level (modalHold reset above)
+      }
+    } catch (e) {}
+    return enabled;
+  }
+
+  // ── Public: play (fire-and-forget; no-op when disabled/locked) ─────────
+  function play(name, opts) {
+    try {
+      if (!enabled || !running()) return;
+      const o = opts || {};
+      switch (name) {
+        case "boot":
+          [220, 330, 440].forEach((f, k) => later(k * 55, () => beep(f, 40, SND_VOL.boot)));
+          break;
+        case "ui.click":
+          tick(6, 3000, SND_VOL.tick);
+          beep(660, 30, SND_VOL.tick);
+          break;
+        case "year.set": {
+          const i = Math.max(0, Math.min(5, o.yearIndex | 0)); // → SND_SCALE 220…660
+          beep(SND_SCALE[i], 40, SND_VOL.blip);
+          break;
+        }
+        case "type.tick": {
+          const now = performance.now();
+          if (now - lastTypeTick < 45) return;                 // throttle ≥45ms
+          lastTypeTick = now;
+          tick(5, 2000 + (Math.random() * 800 - 400), SND_VOL.tick);
+          break;
+        }
+        case "count.tick": {
+          const steps = Math.max(1, o.steps | 0 || 8);
+          const step = Math.max(1, o.step | 0 || 1);
+          // step across 330→660 using the SND_SCALE subrange [330,440,495,550,660]
+          const sub = [330, 440, 495, 550, 660];
+          const idx = Math.round((step - 1) / (steps - 1 || 1) * (sub.length - 1));
+          beep(sub[Math.max(0, Math.min(sub.length - 1, idx))], 20, SND_VOL.tick);
+          break;
+        }
+        case "focus.out":
+          sweep(300, 1200, 700, SND_VOL.sweep);
+          break;
+        case "focus.home":
+          sweep(1200, 300, 700, SND_VOL.sweep);
+          break;
+        case "hub.ping": {
+          let t; try { t = (HUBS[o.hubId] || {}).type; } catch (e) { t = null; }
+          const f = t === "origin" ? 330 : 440;
+          beep(f, 60, SND_VOL.ping);
+          later(180, () => beep(f, 60, SND_VOL.ping * 0.5)); // quieter echo
+          break;
+        }
+        case "callout.open":
+          beep(440, 40, SND_VOL.chirp);
+          later(45, () => beep(660, 40, SND_VOL.chirp));
+          break;
+        case "context.on":
+          beep(330, 40, SND_VOL.chirp);
+          break;
+        case "endcard":
+          duck(3400);
+          thud(600);
+          break;
+        case "morph": {
+          const up = o.to === "globe";
+          const lo = 220, hi = 440;
+          for (let s = 0; s < 12; s++) {
+            const frac = s / 11;
+            const target = up ? lo + (hi - lo) * frac : hi - (hi - lo) * frac;
+            const f = snapScale(target);
+            later(s * 40, () => beep(f, 40, SND_VOL.tick));
+          }
+          break;
+        }
+        case "invert":
+          beep(440, 30, SND_VOL.blip);
+          later(35, () => beep(220, 30, SND_VOL.blip));
+          break;
+        case "modal.open":
+          beep(550, 40, SND_VOL.blip);
+          modalHold = true; applyAmbGain(0.3);               // hold amb at 50%
+          break;
+        case "modal.close":
+          beep(440, 30, SND_VOL.blip);
+          modalHold = false; applyAmbGain(0.3);              // release the hold
+          break;
+        default:
+          return;                                            // unknown → no log
+      }
+      logEvt(name);
+    } catch (e) { /* audio must never throw into a handler */ }
+  }
+
+  // ── Lifecycle: suspend on hidden, resume on visible (own listener) ─────
+  document.addEventListener("visibilitychange", () => {
+    try {
+      if (!ctx) return;
+      if (document.hidden) { stopBlip(); if (ctx.state === "running") ctx.suspend(); }
+      else if (enabled) resumeIfWanted();
+    } catch (e) {}
+  });
+
+  window.__snd = {
+    recent,
+    state: () => ({ ctx: ctx ? ctx.state : "none", enabled, ambYear, ducked, modalHold }),
+  };
+
+  return {
+    get enabled() { return enabled; },
+    unlock, play, setAmbientYear, duck, restoreAmbient, setEnabled,
+  };
+}
+
+const sound = createSoundEngine();
+
+// ════════════════════════════════════════════════════════════════════
 // CHINA-EU FLOW ASCII · ui.js — plain JS fragment (no import/export)
 //
 // initUI({ sceneApi, hubs, years, yearList, initialYear })
@@ -2452,6 +2826,7 @@ function initUI({ sceneApi, hubs, years, yearList, initialYear }) {
     viewGlobeBtn: $("view-globe-btn"),
     viewFlatBtn: $("view-flat-btn"),
     invertBtn: $("invert-btn"),
+    sndBtn: $("snd-btn"),
     // modal
     infoBtn: $("info-btn"),
     modal: $("info-modal"),
@@ -2549,6 +2924,11 @@ function initUI({ sceneApi, hubs, years, yearList, initialYear }) {
 
     paletteEngine.setYear(y);   // duotone drift follows the timeline
     sceneApi.setYear(y);
+
+    // Audio: pitched year blip + ambient bed retune (user clicks AND tour).
+    // No-op while locked (init call fires this before any gesture → silent).
+    sound.play("year.set", { yearIndex: yearList.indexOf(y) });
+    sound.setAmbientYear(y);
   }
 
   // ── ANNUAL / DAILY tabs ───────────────────────────────────────────
@@ -2595,6 +2975,7 @@ function initUI({ sceneApi, hubs, years, yearList, initialYear }) {
     for (let i = 0; i <= fullText.length; i += stepChars) {
       if (myTok !== tourToken) return;
       el.textContent = fullText.slice(0, i);
+      sound.play("type.tick");
       if ((await sleep(1000 / cps)) === "cancel") return;
     }
     el.textContent = fullText;
@@ -2611,6 +2992,7 @@ function initUI({ sceneApi, hubs, years, yearList, initialYear }) {
     for (let i = 1; i <= STEPS; i++) {
       if (myTok !== tourToken) return;
       el.textContent = prefix + (target * i / STEPS).toFixed(decimals) + suffix;
+      sound.play("count.tick", { step: i, steps: STEPS });
       if ((await sleep(80)) === "cancel") return;
     }
     el.textContent = volumeStr;
@@ -2635,6 +3017,7 @@ function initUI({ sceneApi, hubs, years, yearList, initialYear }) {
   function showEndCard() {
     const wrap = endcardEl();
     if (!wrap) return;
+    sound.play("endcard");   // duck(3400) + thud
     wrap.hidden = false;
     const box = wrap.querySelector(".endcard-box");
     if (box) tuiBuildFrame(box);   // frame was 0-width while hidden
@@ -2642,6 +3025,7 @@ function initUI({ sceneApi, hubs, years, yearList, initialYear }) {
   function hideEndCard() {
     const wrap = endcardEl();
     if (wrap) wrap.hidden = true;
+    sound.restoreAmbient();   // idempotent un-duck (safe when no duck active)
   }
   // Resolves on auto-timeout, click, or token cancel (visible-time clock).
   function waitEndCard(myTok) {
@@ -2696,6 +3080,7 @@ function initUI({ sceneApi, hubs, years, yearList, initialYear }) {
     clearPanelHighlights();
     setPanelFocus(els.paneAnnual);
     els.statGrowth.textContent = "";                 // growth badge appears at the final step
+    sound.play("focus.home");
     await sceneApi.focusCamera(sceneApi.getHomeCamera(), homeFrames());
     if (myTok !== tourToken) return;
     const d = years[y];
@@ -2719,15 +3104,19 @@ function initUI({ sceneApi, hubs, years, yearList, initialYear }) {
       sceneApi.hideCallout();
       sceneApi.setHubEmphasis(null);
       sceneApi.setRouteSpotlight(null);
+      sound.play("focus.out");
       await sceneApi.focusHub(hubId, { zoomMul: 1.6, frames: homeFrames() });
       if (myTok !== tourToken) return;
       sceneApi.setHubEmphasis(hubId);
+      sound.play("hub.ping", { hubId });
       sceneApi.setRouteSpotlight(hubId);
       const full = sceneApi.showCallout(hubId, y);
+      sound.play("callout.open");
       if (!REDUCE_MOTION && full) {
         for (let n = 0; n <= full.length; n += 2) {
           if (myTok !== tourToken) return;
           sceneApi.setCalloutText(full, n);
+          sound.play("type.tick");
           if ((await sleep(16)) === "cancel") return;
         }
         sceneApi.setCalloutText(full, full.length);
@@ -2738,6 +3127,7 @@ function initUI({ sceneApi, hubs, years, yearList, initialYear }) {
   }
 
   async function beatC(y, myTok) {
+    sound.play("focus.home");
     await sceneApi.focusCamera(sceneApi.getHomeCamera(), homeFrames());
     if (myTok !== tourToken) return;
     sceneApi.setHubEmphasis(null);
@@ -2745,6 +3135,7 @@ function initUI({ sceneApi, hubs, years, yearList, initialYear }) {
     sceneApi.hideCallout();
     clearPanelHighlights();
     setPanelFocus(contextSection());
+    sound.play("context.on");
     await typeText(els.yearEvent, years[y].event, myTok);
     if (myTok !== tourToken) return;
     await sleep(TOUR_BEAT_C_MS);
@@ -2755,6 +3146,7 @@ function initUI({ sceneApi, hubs, years, yearList, initialYear }) {
     const r = await waitEndCard(myTok);
     hideEndCard();
     if (r === "cancel" || myTok !== tourToken) return;
+    sound.play("focus.home");
     await sceneApi.focusCamera(sceneApi.getHomeCamera(), homeFrames());
   }
 
@@ -2832,7 +3224,9 @@ function initUI({ sceneApi, hubs, years, yearList, initialYear }) {
       return;
     }
     lastViewSwitch = now;
+    const from = sceneApi.getView();
     sceneApi.setView(view);
+    sound.play("morph", { from, to: view });   // only fires on a real switch
     syncViewButtons(view);
   }
 
@@ -2843,6 +3237,7 @@ function initUI({ sceneApi, hubs, years, yearList, initialYear }) {
   function toggleInvert() {
     const on = paletteEngine.toggleInvert();
     els.invertBtn.classList.toggle("active", on);
+    sound.play("invert");
   }
   els.invertBtn.addEventListener("click", toggleInvert);
 
@@ -2855,11 +3250,14 @@ function initUI({ sceneApi, hubs, years, yearList, initialYear }) {
     els.modal.classList.add("active");
     els.modal.setAttribute("aria-hidden", "false");
     sceneApi.setPaused(true); // particles idle while the scene is covered
+    // After stopPlayback (which may un-duck): apply the modal 50% ambient hold.
+    sound.play("modal.open");
   }
   function closeModal() {
     els.modal.classList.remove("active");
     els.modal.setAttribute("aria-hidden", "true");
     sceneApi.setPaused(false);
+    sound.play("modal.close"); // beep + release the 50% hold (idempotent)
   }
 
   els.infoBtn.addEventListener("click", () => (modalOpen() ? closeModal() : openModal()));
@@ -2871,11 +3269,34 @@ function initUI({ sceneApi, hubs, years, yearList, initialYear }) {
     if (e.key === "Escape" && modalOpen()) closeModal();
     // !e.repeat: a held key must not re-toggle mid-lerp every OS repeat
     if ((e.key === "i" || e.key === "I") && !e.repeat && !e.metaKey && !e.ctrlKey && !e.altKey) toggleInvert();
+    if ((e.key === "s" || e.key === "S") && !e.repeat && !e.metaKey && !e.ctrlKey && !e.altKey) { sound.unlock(); toggleSound(); }
+  });
+
+  // ── [ SND ] — procedural audio on/off (button + keyboard "s") ─────────
+  function toggleSound() {
+    sound.unlock();                              // this gesture also unlocks
+    const on = sound.setEnabled(!sound.enabled);
+    els.sndBtn.classList.toggle("active", on);
+    try { localStorage.setItem("cnEuFlow.snd", on ? "on" : "off"); } catch (e) {}
+  }
+  els.sndBtn.addEventListener("click", toggleSound);
+
+  // Generic click feedback on every .tui-btn (skip disabled + .year-btn,
+  // which already layers its own pitched year.set blip — avoids clipping).
+  document.addEventListener("click", (e) => {
+    const b = e.target.closest(".tui-btn");
+    if (b && !b.disabled && !b.classList.contains("year-btn")) sound.play("ui.click");
   });
 
   // ── Initial state ─────────────────────────────────────────────────
   setMode("annual");
   syncViewButtons(typeof sceneApi.getView === "function" ? sceneApi.getView() : "globe");
+  // Restore the persisted sound flag (default ON; engine stays LOCKED until a
+  // gesture). Button reflects the flag even before the AudioContext exists.
+  const sndPref = (() => { try { return localStorage.getItem("cnEuFlow.snd"); } catch (e) { return null; } })();
+  const sndOn = sndPref !== "off";
+  sound.setEnabled(sndOn);
+  els.sndBtn.classList.toggle("active", sndOn);
   setYear(currentYear);
 
   // character frames: draw once now, redraw when the viewport changes and
@@ -2922,8 +3343,15 @@ const uiApi = initUI({ sceneApi, hubs: HUBS, years: YEARS, yearList: YEAR_LIST, 
 // click removes it — hard cut, no fade (TUI transition discipline).
 const enterPanel = document.getElementById("enter-panel");
 if (enterPanel) {
-  enterPanel.addEventListener("click", () => enterPanel.remove(), { once: true });
+  enterPanel.addEventListener("click", () => {
+    sound.unlock();          // canonical unlock gesture
+    sound.play("boot");      // rising arp, right after unlock
+    enterPanel.remove();
+  }, { once: true });
 }
+// Defensive unlock for restored sessions where the enter panel was already
+// dismissed (element-scoped scene/tour pointerdown handlers won't conflict).
+document.addEventListener("pointerdown", () => sound.unlock(), { once: true });
 </script>
 <!-- ── PWA: service-worker registration (classic, on window load) ──────────
      Kept separate from the module boot and the #globe-host CDN fail-timer so
