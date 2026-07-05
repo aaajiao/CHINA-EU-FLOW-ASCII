@@ -572,6 +572,40 @@ strong { text-decoration: underline; }
   0%, 49.9% { opacity: 1; }
   50%, 100% { opacity: 0; }
 }
+
+/* ── Guided tour: left-panel block highlight (hard cut, no transitions) ── */
+.tour-focus .stat-label,
+.tour-focus .block-label {
+  background: var(--ink);
+  color: var(--paper);
+  opacity: 1;
+}
+.tour-focus .stat-label::before,
+.tour-focus .block-label::before { content: "\25BA "; }  /* CP437 ► marker */
+.tour-dim { opacity: 0.55; }
+
+/* ── Guided tour: end card (double-frame, centered like #enter-panel) ── */
+#tour-endcard {
+  position: fixed;
+  inset: 0;
+  z-index: 150;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+.endcard-box {
+  width: max-content;
+  max-width: calc(100vw - 48px);
+  text-align: center;
+}
+.endcard-body { padding: 16px 24px; }
+.endcard-body p {
+  margin: 0 0 8px;
+  text-transform: uppercase;
+  color: var(--ink);
+}
+.endcard-body p:last-child { margin-bottom: 0; opacity: 0.7; }
 </style>
 </head>
 <body>
@@ -625,6 +659,21 @@ strong { text-decoration: underline; }
           <li>[I] INVERT</li>
         </ul>
         <p class="enter-note">CLICK TO ENTER</p>
+      </div>
+    </div>
+    <div class="tui-bottom tui-line" aria-hidden="true"></div>
+  </div>
+</div>
+
+<!-- ── Guided-tour end card (double-frame; shown after the 2025 beat) ── -->
+<div id="tour-endcard" hidden>
+  <div class="endcard-box tui-panel" data-frame="double">
+    <div class="tui-top tui-line" aria-hidden="true"></div>
+    <div class="tui-body">
+      <div class="endcard-body">
+        <p>&euro;3 PER-ITEM CUSTOMS DUTY &mdash; AGREED 12 DEC 2025</p>
+        <p>IN FORCE 1 JULY 2026</p>
+        <p>DE MINIMIS ERA CLOSED &middot; 2020&ndash;2025</p>
       </div>
     </div>
     <div class="tui-bottom tui-line" aria-hidden="true"></div>
@@ -821,20 +870,20 @@ const LAND_GRID = {"cols":360,"rows":180,"bits":"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
 // city name); otherwise defaults by type: origin 0.3 / hub 0.4 / dest 0.2.
 const HUBS = {
   // China (origins)
-  CAN: { id: "CAN", name: "GUANGZHOU", lat: 23.1291, lng: 113.2644, type: "origin", weight: 0.5,  desc: "Shein Supply Chain Hub" },
-  SZX: { id: "SZX", name: "SHENZHEN",  lat: 22.5431, lng: 114.0579, type: "origin", weight: 0.25, desc: "Tech/Temu Hub" },
-  HKG: { id: "HKG", name: "HONG KONG", lat: 22.3193, lng: 114.1694, type: "origin", weight: 0.3,  desc: "Global Gateway" },          // not in proto 2 → default origin
-  PVG: { id: "PVG", name: "SHANGHAI",  lat: 31.2304, lng: 121.4737, type: "origin", weight: 0.15, desc: "East China Hub" },
-  YIW: { id: "YIW", name: "YIWU",      lat: 29.3151, lng: 120.0768, type: "origin", weight: 0.1,  desc: "Small Commodities" },
+  CAN: { id: "CAN", name: "GUANGZHOU", lat: 23.1291, lng: 113.2644, type: "origin", weight: 0.5,  desc: "Shein Supply Chain Hub", tourDesc: ["SHEIN SUPPLY-CHAIN HEARTLAND", "PEARL RIVER DELTA GARMENT CORE"] },
+  SZX: { id: "SZX", name: "SHENZHEN",  lat: 22.5431, lng: 114.0579, type: "origin", weight: 0.25, desc: "Tech/Temu Hub", tourDesc: ["TEMU / ELECTRONICS ORIGIN", "PEARL RIVER DELTA TECH BELT"] },
+  HKG: { id: "HKG", name: "HONG KONG", lat: 22.3193, lng: 114.1694, type: "origin", weight: 0.3,  desc: "Global Gateway", tourDesc: ["GLOBAL AIR-CARGO GATEWAY", "FREE-PORT TRANSSHIPMENT NODE"] },          // not in proto 2 → default origin
+  PVG: { id: "PVG", name: "SHANGHAI",  lat: 31.2304, lng: 121.4737, type: "origin", weight: 0.15, desc: "East China Hub", tourDesc: ["EAST CHINA EXPORT GATEWAY", "PUDONG AIR-FREIGHT ORIGIN"] },
+  YIW: { id: "YIW", name: "YIWU",      lat: 29.3151, lng: 120.0768, type: "origin", weight: 0.1,  desc: "Small Commodities", tourDesc: ["SMALL-COMMODITIES CAPITAL", "WORLD'S LARGEST GOODS MARKET"] },
 
   // Europe (entry hubs + destinations)
-  LGG: { id: "LGG", name: "LIEGE",     lat: 50.6326, lng: 5.5797,   type: "hub",  weight: 0.5,  desc: "Key EU Entry (eWTP)" },
-  AMS: { id: "AMS", name: "AMSTERDAM", lat: 52.3676, lng: 4.9041,   type: "hub",  weight: 0.1,  desc: "Logistics Hub" },
-  FRA: { id: "FRA", name: "FRANKFURT", lat: 50.1109, lng: 8.6821,   type: "hub",  weight: 0.2,  desc: "Air Cargo Hub" },
-  LHR: { id: "LHR", name: "LONDON",    lat: 51.5074, lng: -0.1278,  type: "dest", weight: 0.2,  desc: "UK Market" },
-  CDG: { id: "CDG", name: "PARIS",     lat: 48.8566, lng: 2.3522,   type: "dest", weight: 0.2,  desc: "Fashion Market" },           // not in proto 2 → default dest
-  MAD: { id: "MAD", name: "MADRID",    lat: 40.4168, lng: -3.7038,  type: "dest", weight: 0.2,  desc: "Southern EU Hub" },          // not in proto 2 → default dest
-  WAW: { id: "WAW", name: "WARSAW",    lat: 52.2297, lng: 21.0122,  type: "dest", weight: 0.2,  desc: "Central EU Hub" },           // not in proto 2 → default dest
+  LGG: { id: "LGG", name: "LIEGE",     lat: 50.6326, lng: 5.5797,   type: "hub",  weight: 0.5,  desc: "Key EU Entry (eWTP)", tourDesc: ["CAINIAO / ALIBABA EWTP HUB", "PRIME EU AIR-CARGO ENTRY"] },
+  AMS: { id: "AMS", name: "AMSTERDAM", lat: 52.3676, lng: 4.9041,   type: "hub",  weight: 0.1,  desc: "Logistics Hub", tourDesc: ["SCHIPHOL LOGISTICS GATEWAY", "LOWLANDS DISTRIBUTION HUB"] },
+  FRA: { id: "FRA", name: "FRANKFURT", lat: 50.1109, lng: 8.6821,   type: "hub",  weight: 0.2,  desc: "Air Cargo Hub", tourDesc: ["CENTRAL EU AIR-CARGO HUB", "MAINLAND FREIGHT CROSSROADS"] },
+  LHR: { id: "LHR", name: "LONDON",    lat: 51.5074, lng: -0.1278,  type: "dest", weight: 0.2,  desc: "UK Market", tourDesc: ["UK CONSUMER DESTINATION", "POST-BREXIT PARCEL MARKET"] },
+  CDG: { id: "CDG", name: "PARIS",     lat: 48.8566, lng: 2.3522,   type: "dest", weight: 0.2,  desc: "Fashion Market", tourDesc: ["FASHION-LED PARCEL MARKET", "FRENCH CONSUMER DESTINATION"] },           // not in proto 2 → default dest
+  MAD: { id: "MAD", name: "MADRID",    lat: 40.4168, lng: -3.7038,  type: "dest", weight: 0.2,  desc: "Southern EU Hub", tourDesc: ["SOUTHERN EU DESTINATION", "IBERIAN PARCEL GATEWAY"] },          // not in proto 2 → default dest
+  WAW: { id: "WAW", name: "WARSAW",    lat: 52.2297, lng: 21.0122,  type: "dest", weight: 0.2,  desc: "Central EU Hub", tourDesc: ["CENTRAL / EASTERN EU GATEWAY", "POLAND PARCEL DESTINATION"] },           // not in proto 2 → default dest
 };
 
 // --- Yearly data --------------------------------------------------------------
@@ -1027,6 +1076,11 @@ const SCN_MORPH_FRAME_BUDGET_MS = 90;  // first morph frame slower than this →
 const SCN_MORPH_FALLBACK_FRAMES = 4;   // shrink N frames, swap, grow N frames
 const SCN_MORPH_FALLBACK_STEP_MS = 45;
 
+// Guided-tour stepped camera move (mirrors the morph cadence: setTimeout
+// chain, smoothstep ease, no rAF / no CSS transitions).
+const SCN_FOCUS_FRAMES  = 12;
+const SCN_FOCUS_STEP_MS = 66;
+
 // Route ribbon arcs
 const SCN_ARC_SEGMENTS  = 24;
 const SCN_ARC_WIDTH     = 0.012;       // ribbon full width
@@ -1034,6 +1088,7 @@ const SCN_ARC_PEAK_BASE = 0.06;        // radial lift at zero arc length
 const SCN_ARC_PEAK_SPAN = 0.12;        // extra lift × (arcAngle / π)
 const SCN_ARC_COLOR_HI  = "#aaaaaa";   // intensity 1.0 → '*' weight (lighter than land; dark marks over ocean)
 const SCN_ARC_COLOR_LO  = "#909090";   // intensity 0.4 → '+' weight
+const SCN_ARC_COLOR_DIM = "#6a6a6a";   // route-spotlight: non-touching arcs → faintest glyph weight
 
 // Particles
 const SCN_PARTICLE_SIZE     = 0.026;   // octahedron half-extent
@@ -1168,10 +1223,13 @@ function createLogisticsScene(host, { landGrid, hubs, years }) {
   const initialZoom = hostW < 800
     ? Math.max(9, Math.round(hostW / 30))
     : SCN_INITIAL_ZOOM_DESKTOP;
+  // Boot zoom, captured ONCE (mobile branch differs from desktop 24). The
+  // guided tour's "home" framing and focusHub zoom-in both derive from this.
+  const homeZoom = clamp(initialZoom, SCN_ZOOM_MIN, SCN_ZOOM_MAX);
   const camera = createGlyphOrthographicCamera({
     rotX: SCN_GLOBE_CAM.rotX,
     rotY: SCN_GLOBE_CAM.rotY,
-    zoom: clamp(initialZoom, SCN_ZOOM_MIN, SCN_ZOOM_MAX),
+    zoom: homeZoom,
   });
   const scene = createGlyphScene(host, {
     camera,
@@ -1326,6 +1384,13 @@ function createLogisticsScene(host, { landGrid, hubs, years }) {
   let morphDegraded = false;            // sticky: first slow morph → always fallback
   let morphTimer = null;
   let savedGlobeCam = { rotX: SCN_GLOBE_CAM.rotX, rotY: SCN_GLOBE_CAM.rotY };
+
+  // Guided-tour scene state (all default off → zero effect until the tour drives them).
+  let focusTimer = null;                // setTimeout handle for the active camera move
+  let focusToken = 0;                   // monotonic cancellation token (a new move supersedes)
+  let focusResolve = null;              // resolve() of the in-flight focusCamera Promise (settled on cancel/supersede)
+  let emphasisHubId = null;             // hub whose label is emphasised (others dim)
+  let spotlightHubId = null;            // hub whose routes stay lit (others dim)
 
   let currentYear = null;
   let paused = false;                   // external (setPaused)
@@ -1583,25 +1648,50 @@ function createLogisticsScene(host, { landGrid, hubs, years }) {
     scene.rerender();
   }, SCN_PARTICLE_TICK_MS);
 
+  // ── route arc ribbons (own layer, so the tour can spotlight without
+  //    disturbing pillars / particles / routesGeom) ──────────────────────────
+  // Rebuilds ONLY the arcs handle. When spotlightHubId is set, arcs whose
+  // route does not touch that hub render with the faintest glyph weight; the
+  // touching arcs keep their intensity colour. routesGeom (particles) is NOT
+  // rebuilt here — particles keep flowing on every route.
+  function buildArcs() {
+    if (arcsHandle) { arcsHandle.dispose(); arcsHandle = null; }
+    if (currentYear == null || !years[currentYear]) return;
+    const arcPolys = [];
+    for (const r of years[currentYear].activeRoutes ?? []) {
+      const src = hubs[r.src], dst = hubs[r.dst];
+      if (!src || !dst) continue;
+      const { samples } = routeSamples(src, dst);
+      const touches = spotlightHubId && (r.src === spotlightHubId || r.dst === spotlightHubId);
+      const dimmed = spotlightHubId && !touches;
+      const col = dimmed ? SCN_ARC_COLOR_DIM : arcColor(r.intensity ?? 1);
+      arcPolys.push(...ribbonPolys(samples, col));
+    }
+    if (arcPolys.length) arcsHandle = scene.add(arcPolys);
+  }
+
+  function setRouteSpotlight(id) {
+    spotlightHubId = id;
+    buildArcs();
+    scene.rerender();
+  }
+
   // ── per-year rebuild (arcs + pillars + particle quotas) ───────────────────
   function rebuildYearVisuals() {
     if (currentYear == null || !years[currentYear]) return;
     const yd = years[currentYear];
 
-    if (arcsHandle) { arcsHandle.dispose(); arcsHandle = null; }
     if (hubsHandle) { hubsHandle.dispose(); hubsHandle = null; }
 
     routesGeom = [];
-    const arcPolys = [];
     for (const r of yd.activeRoutes ?? []) {
       const src = hubs[r.src], dst = hubs[r.dst];
       if (!src || !dst) continue;
       const { samples, omega } = routeSamples(src, dst);
       const intensity = r.intensity ?? 1;
       routesGeom.push({ samples, omega, intensity });
-      arcPolys.push(...ribbonPolys(samples, arcColor(intensity)));
     }
-    if (arcPolys.length) arcsHandle = scene.add(arcPolys);
+    buildArcs();  // owns arcsHandle (honours spotlightHubId)
 
     const volMul = (yd.rawVolume ?? maxVol) / maxVol;
     const hubPolys = [];
@@ -1632,6 +1722,99 @@ function createLogisticsScene(host, { landGrid, hubs, years }) {
       // per-character estimate); invalidated once the VGA webfont arrives.
       return { hub, el, w: 0 };
     });
+
+  // ── guided-tour callout box (one reusable overlay in the label layer) ──────
+  // Lives beside the labels (a stable sibling of the per-frame <pre>), so it
+  // survives every rerender. Colours via CSS vars → INVERT / palette drift.
+  const calloutEl = document.createElement("div");
+  calloutEl.style.cssText =
+    "position:absolute;white-space:pre;font:16px 'IBM VGA','Courier New',monospace;" +
+    "line-height:1;color:var(--ink);background:var(--paper);pointer-events:none;" +
+    "z-index:7;opacity:0;";
+  labelLayer.appendChild(calloutEl);
+  let calloutHubId = null, calloutYear = null;
+  let calloutBox = { w: 0, h: 0 };   // full-text size, captured at showCallout for stable reveal
+
+  // 34-column framed port card (fixed inner width; every line padded).
+  function buildCalloutText(hubId, year) {
+    const hub = hubs[hubId];
+    if (!hub) return "";
+    const W = 32;                              // inner text columns
+    const bar = W + 2;                         // dash span between corners
+    // London (LHR) is UK / post-Brexit — a "dest" but NOT an EU destination.
+    const typeLabel = hub.id === "LHR"
+      ? "UK DESTINATION"
+      : ({ origin: "CHINA ORIGIN", hub: "EU ENTRY HUB", dest: "EU DESTINATION" }[hub.type]
+        || String(hub.type).toUpperCase());
+    const pad = (s) => "│ " + (s.length > W ? s.slice(0, W) : s.padEnd(W)) + " │";
+    const lines = [];
+    let head = "─ PORT · " + hub.name + " (" + hub.id + ") ";
+    head = head.length >= bar ? head.slice(0, bar) : head + "─".repeat(bar - head.length);
+    lines.push("┌" + head + "┐");
+    lines.push(pad("TYPE: " + typeLabel));
+    lines.push(pad(String(hub.desc || "").toUpperCase()));
+    for (const t of hub.tourDesc || []) lines.push(pad(t));
+    lines.push(pad(year + " LINKS:"));
+    for (const r of years[year]?.activeRoutes ?? []) {
+      if (r.src !== hubId && r.dst !== hubId) continue;
+      const n = Math.max(0, Math.min(10, Math.round((r.intensity ?? 1) * 10)));
+      lines.push(pad(" " + r.src + "→" + r.dst + "  " + "#".repeat(n) + "-".repeat(10 - n)));
+    }
+    lines.push("└" + "─".repeat(bar) + "┘");
+    return lines.join("\n");
+  }
+
+  function positionCallout() {
+    const hub = hubs[calloutHubId];
+    if (!hub) { calloutEl.style.opacity = "0"; return; }
+    const { cols, rows, cellAspect } = gridDims();
+    const rect = host.getBoundingClientRect();
+    const cellW = rect.width / cols, cellH = rect.height / rows;
+    const [col, row, depth] = camera.project(labelAnchor(hub), cols, rows, cellAspect);
+    if (!Number.isFinite(col)) { calloutEl.style.opacity = "0"; return; }
+    const ax = col * cellW, ay = row * cellH;
+    const bw = calloutBox.w || calloutEl.getBoundingClientRect().width || 280;
+    const bh = calloutBox.h || calloutEl.getBoundingClientRect().height || 140;
+    const gap = 18;
+    // Offset to the side of the anchor with more room, then clamp fully inside.
+    let left = ax > rect.width / 2 ? ax - gap - bw : ax + gap;
+    let top = ay - bh / 2;
+    left = clamp(left, 4, Math.max(4, rect.width - bw - 4));
+    top = clamp(top, 4, Math.max(4, rect.height - bh - 4));
+    calloutEl.style.left = left + "px";
+    calloutEl.style.top = top + "px";
+    calloutEl.style.opacity = depth > 0 ? "1" : "0.8";
+  }
+
+  function showCallout(hubId, year) {
+    calloutHubId = hubId;
+    calloutYear = year;
+    calloutBox = { w: 0, h: 0 };
+    const txt = buildCalloutText(hubId, year);
+    calloutEl.textContent = txt;
+    updateLabels();                            // positions using full-text size
+    calloutBox = { w: calloutEl.offsetWidth, h: calloutEl.offsetHeight };
+    return txt;                                // ui drives the typewriter reveal
+  }
+  function hideCallout() {
+    calloutHubId = null;
+    calloutBox = { w: 0, h: 0 };
+    calloutEl.style.opacity = "0";
+    updateLabels();
+  }
+  // Reveal driver for the ui typewriter — scene stays dumb, only repositions.
+  function setCalloutText(fullText, revealCount) {
+    calloutEl.textContent = revealCount == null ? fullText : fullText.slice(0, revealCount);
+    if (calloutHubId) positionCallout();
+  }
+
+  // Emphasis: which hub label reads at full strength (others dim). Applied
+  // inside updateLabels (it rewrites opacity every call), so it survives drag.
+  function setHubEmphasis(id) {
+    emphasisHubId = id;
+    updateLabels();
+  }
+
   if (document.fonts?.ready) {
     document.fonts.ready.then(() => {
       if (destroyed) return;
@@ -1648,6 +1831,7 @@ function createLogisticsScene(host, { landGrid, hubs, years }) {
   function updateLabels() {
     if (labelsHidden || destroyed) {
       for (const r of labelRecs) r.el.style.opacity = "0";
+      calloutEl.style.opacity = "0";
       return;
     }
     const { cols, rows, cellAspect } = gridDims();
@@ -1692,8 +1876,16 @@ function createLogisticsScene(host, { landGrid, hubs, years }) {
       }
       rec.el.style.left = `${fx}px`;
       rec.el.style.top = `${fy}px`;
-      rec.el.style.opacity = front ? "0.92" : "0.4";
+      // Tour emphasis: focused hub full strength, all others dim to 0.35.
+      // Default look (no emphasis) keeps the front/back opacity split.
+      if (emphasisHubId) {
+        rec.el.style.opacity = rec.hub.id === emphasisHubId ? "1" : "0.35";
+      } else {
+        rec.el.style.opacity = front ? "0.92" : "0.4";
+      }
     }
+    if (calloutHubId) positionCallout();
+    else calloutEl.style.opacity = "0";
     updateCargoOverlay();
   }
 
@@ -1825,6 +2017,95 @@ function createLogisticsScene(host, { landGrid, hubs, years }) {
     }
   }
 
+  // ── guided-tour camera moves (stepped setTimeout chain, like the morph) ────
+  // focusCamera lerps rotX/rotY/zoom to a target over `frames` steps. A new
+  // move cancels the previous (token bump + clearTimeout). Aborts cleanly if
+  // the user grabs the globe (activePtr) or a morph starts — their camera wins.
+  // Settle the in-flight focusCamera Promise (if any) so its awaiting
+  // coroutine unwinds instead of hanging forever. Idempotent.
+  function settleFocus() {
+    if (focusResolve) { const r = focusResolve; focusResolve = null; r(); }
+  }
+
+  function cancelFocus() {
+    focusToken++;
+    if (focusTimer) { clearTimeout(focusTimer); focusTimer = null; }
+    settleFocus();
+  }
+
+  function focusCamera(target, frames = SCN_FOCUS_FRAMES, stepMs = SCN_FOCUS_STEP_MS) {
+    if (focusTimer) { clearTimeout(focusTimer); focusTimer = null; }
+    settleFocus();                       // resolve any move this one supersedes
+    const myToken = ++focusToken;
+    if (view !== "globe" || morphing() || destroyed) return Promise.resolve();
+    const n = Math.max(1, frames | 0);
+    const from = { rotX: camera.rotX, rotY: camera.rotY, zoom: camera.zoom };
+    const to = {
+      rotX: target.rotX ?? from.rotX,
+      rotY: target.rotY ?? from.rotY,
+      zoom: clamp(target.zoom ?? from.zoom, SCN_ZOOM_MIN, SCN_ZOOM_MAX),
+    };
+    return new Promise((resolve) => {
+      focusResolve = resolve;            // so cancelFocus/supersede can settle us
+      let i = 0;
+      const step = () => {
+        if (destroyed || myToken !== focusToken) { settleFocus(); return; }
+        // User grabbed the globe (or a morph began) → abandon, leave camera put.
+        if (activePtr !== null || morphing()) { focusTimer = null; settleFocus(); return; }
+        i++;
+        const t = i / n;
+        const e = t * t * (3 - 2 * t);   // smoothstep, same ease as the morph
+        camera.rotX = from.rotX + (to.rotX - from.rotX) * e;
+        camera.rotY = from.rotY + (to.rotY - from.rotY) * e;
+        camera.zoom = from.zoom + (to.zoom - from.zoom) * e;
+        scene.rerender();
+        updateLabels();
+        if (i < n) focusTimer = setTimeout(step, stepMs);
+        else { focusTimer = null; settleFocus(); }
+      };
+      step();
+    });
+  }
+
+  // Center a hub facing the camera. First guess from geography (rotX≈lat,
+  // rotY≈lng), then VERIFY NUMERICALLY across sign/offset candidates +
+  // coordinate-descent refine — immune to the 0.0.9 sign conventions.
+  function focusHub(hubId, opts = {}) {
+    const hub = hubs[hubId];
+    if (!hub || view !== "globe" || morphing() || destroyed) return Promise.resolve();
+    const { cols, rows, cellAspect } = gridDims();
+    const anchor = latLonToXYZ(hub.lat, hub.lng, SCN_GLOBE_RADIUS * SCN_LABEL_RADIUS);
+    const cx = cols / 2, cy = rows / 2;
+    const save = { rotX: camera.rotX, rotY: camera.rotY };
+    const score = (rx, ry) => {
+      camera.rotX = rx; camera.rotY = ry;
+      const [c, r, depth] = camera.project(anchor, cols, rows, cellAspect);
+      if (!Number.isFinite(c)) return { ok: false, d: Infinity };
+      return { ok: depth > 0, d: Math.hypot(c - cx, r - cy) };
+    };
+    let best = null;
+    for (const sx of [1, -1]) for (const sy of [1, -1]) for (const oy of [0, 180, -180]) {
+      const rx = sx * hub.lat, ry = sy * hub.lng + oy;
+      const s = score(rx, ry);
+      if (!s.ok) continue;
+      if (!best || s.d < best.d) best = { rotX: rx, rotY: ry, d: s.d };
+    }
+    if (!best) best = { rotX: hub.lat, rotY: hub.lng, d: Infinity };
+    for (const st of [4, 1]) {
+      let improved = true;
+      while (improved) {
+        improved = false;
+        for (const [dx, dy] of [[st, 0], [-st, 0], [0, st], [0, -st]]) {
+          const s = score(best.rotX + dx, best.rotY + dy);
+          if (s.ok && s.d < best.d - 1e-6) { best = { rotX: best.rotX + dx, rotY: best.rotY + dy, d: s.d }; improved = true; }
+        }
+      }
+    }
+    camera.rotX = save.rotX; camera.rotY = save.rotY;   // restore before the animated move
+    const zoom = clamp(homeZoom * (opts.zoomMul ?? 1.6), SCN_ZOOM_MIN, SCN_ZOOM_MAX);
+    return focusCamera({ rotX: best.rotX, rotY: best.rotY, zoom }, opts.frames, opts.stepMs);
+  }
+
   // ── interaction (verbatim world-example patterns) ─────────────────────────
   // Screen pixels subtended by one world unit at the current zoom, so drag
   // rotation tracks the cursor 1:1.
@@ -1927,10 +2208,24 @@ function createLogisticsScene(host, { landGrid, hubs, years }) {
     setPaused(p) {
       paused = !!p;
     },
+    // ── guided-tour surface ────────────────────────────────────────────────
+    focusCamera,
+    focusHub,
+    cancelFocus,
+    setHubEmphasis,
+    setRouteSpotlight,
+    showCallout,
+    hideCallout,
+    setCalloutText,
+    isMorphing: () => morphing(),
+    getHomeCamera: () => ({ rotX: SCN_GLOBE_CAM.rotX, rotY: SCN_GLOBE_CAM.rotY, zoom: homeZoom }),
     destroy() {
       destroyed = true;
       clearInterval(tickTimer);
       if (morphTimer) clearTimeout(morphTimer);
+      if (focusTimer) clearTimeout(focusTimer);
+      focusToken++;
+      settleFocus();
       if (resizeTimer) clearTimeout(resizeTimer);
       host.removeEventListener("pointerdown", onPointerDown);
       host.removeEventListener("pointermove", onPointerMove);
@@ -1940,6 +2235,7 @@ function createLogisticsScene(host, { landGrid, hubs, years }) {
       document.removeEventListener("visibilitychange", onVisibility);
       window.removeEventListener("resize", onResize);
       for (const rec of labelRecs) rec.el.remove();
+      calloutEl.remove();
       if (arcsHandle) arcsHandle.dispose();
       if (hubsHandle) hubsHandle.dispose();
       for (const key of Object.keys(pools)) for (const g of pools[key]) {
@@ -2163,11 +2459,18 @@ function initUI({ sceneApi, hubs, years, yearList, initialYear }) {
   };
 
   const DAILY_MAX = 18; // saturation meter full scale, millions of parcels/day
-  const PLAY_STEP_MS = 2000; // autoplay: 2s per year
   const VIEW_SWITCH_COOLDOWN_MS = 900; // let the ~800ms morph settle
 
+  // ── Guided-tour timing (tunable) ──────────────────────────────────────────
+  const TOUR_BEAT_A_MS = 2500;   // year card dwell
+  const TOUR_BEAT_B_MS = 3500;   // per focused hub dwell
+  const TOUR_BEAT_C_MS = 3000;   // context dwell
+  const TOUR_ENDCARD_MS = 3000;  // end-card auto-dismiss
+  const REDUCE_MOTION = matchMedia("(prefers-reduced-motion: reduce)").matches;
+
   let currentYear = yearList.includes(initialYear) ? initialYear : yearList[0];
-  let playTimer = null;
+  let tourToken = null;              // object identity = current run; null = idle
+  let prevFocused = new Set();       // hubs focused last year (dedupe for variety)
   let lastViewSwitch = 0;
 
   // ── Build year columns (█ character chart) + timeline year buttons ──
@@ -2261,35 +2564,256 @@ function initUI({ sceneApi, hubs, years, yearList, initialYear }) {
   els.tabAnnual.addEventListener("click", () => setMode("annual"));
   els.tabDaily.addEventListener("click", () => setMode("daily"));
 
-  // ── Autoplay: [ |> PLAY ] steps 2s/year, stops at the last year ───
-  function stopPlayback() {
-    if (!playTimer) return;
-    clearInterval(playTimer);
-    playTimer = null;
-    els.playBtn.textContent = "[ |> PLAY ]";
-    els.playBtn.classList.remove("playing");
+  // ── Guided tour: [ |> PLAY ] runs a cinematic walk 2020→2025 ──────────────
+  // Single cancellation token: every awaited beat re-checks it, so any stop
+  // trigger (button, year click, modal, globe grab, Escape) cleanly aborts.
+  const alive = () => tourToken !== null;
+
+  // Sleep that (a) resolves "cancel" the instant the token flips and
+  // (b) freezes its clock while the tab is hidden (accumulates visible time).
+  function sleep(ms) {
+    return new Promise((resolve) => {
+      const myTok = tourToken;
+      let remaining = ms, last = performance.now();
+      const tick = () => {
+        if (myTok !== tourToken) { resolve("cancel"); return; }
+        const now = performance.now();
+        if (!document.hidden) remaining -= now - last;
+        last = now;
+        if (remaining <= 0) { resolve("ok"); return; }
+        setTimeout(tick, Math.min(remaining, 100));
+      };
+      setTimeout(tick, Math.min(remaining, 100));
+    });
   }
 
-  function startPlayback() {
-    const last = yearList[yearList.length - 1];
-    // pressing play while parked on the final year restarts from the top
-    if (currentYear >= last) setYear(yearList[0]);
+  // Cancellable typewriter into a text node (reveal via substring).
+  async function typeText(el, fullText, myTok, cps = 60) {
+    if (REDUCE_MOTION) { el.textContent = fullText; return; }
+    el.textContent = "";
+    const stepChars = Math.max(1, Math.round(cps / 60));
+    for (let i = 0; i <= fullText.length; i += stepChars) {
+      if (myTok !== tourToken) return;
+      el.textContent = fullText.slice(0, i);
+      if ((await sleep(1000 / cps)) === "cancel") return;
+    }
+    el.textContent = fullText;
+  }
+
+  // Stepped 0→N count-up of the big volume number, prefix/suffix preserved.
+  async function countUp(el, volumeStr, myTok) {
+    const m = String(volumeStr).match(/^(\D*)([\d.]+)(.*)$/);
+    if (!m) { el.textContent = volumeStr; return; }
+    if (REDUCE_MOTION) { el.textContent = volumeStr; return; }
+    const prefix = m[1], target = parseFloat(m[2]), suffix = m[3];
+    const decimals = (m[2].split(".")[1] || "").length;
+    const STEPS = 8;
+    for (let i = 1; i <= STEPS; i++) {
+      if (myTok !== tourToken) return;
+      el.textContent = prefix + (target * i / STEPS).toFixed(decimals) + suffix;
+      if ((await sleep(80)) === "cancel") return;
+    }
+    el.textContent = volumeStr;
+  }
+
+  // ── Left-panel block highlight (reverse-video label + dim siblings) ────────
+  const panelSections = () =>
+    Array.from(document.querySelectorAll("#data-panel .panel-body section"));
+  const contextSection = () => els.yearEvent.closest("section");
+  function clearPanelHighlights() {
+    for (const s of panelSections()) s.classList.remove("tour-focus", "tour-dim");
+  }
+  function setPanelFocus(target) {
+    for (const s of panelSections()) {
+      s.classList.toggle("tour-focus", s === target);
+      s.classList.toggle("tour-dim", s !== target);
+    }
+  }
+
+  // ── End card ───────────────────────────────────────────────────────────────
+  const endcardEl = () => document.getElementById("tour-endcard");
+  function showEndCard() {
+    const wrap = endcardEl();
+    if (!wrap) return;
+    wrap.hidden = false;
+    const box = wrap.querySelector(".endcard-box");
+    if (box) tuiBuildFrame(box);   // frame was 0-width while hidden
+  }
+  function hideEndCard() {
+    const wrap = endcardEl();
+    if (wrap) wrap.hidden = true;
+  }
+  // Resolves on auto-timeout, click, or token cancel (visible-time clock).
+  function waitEndCard(myTok) {
+    return new Promise((resolve) => {
+      const wrap = endcardEl();
+      let done = false;
+      const finish = (r) => { if (done) return; done = true; if (wrap) wrap.removeEventListener("click", onClick); resolve(r); };
+      const onClick = () => finish("click");
+      if (wrap) wrap.addEventListener("click", onClick);
+      let remaining = TOUR_ENDCARD_MS, last = performance.now();
+      const tick = () => {
+        if (done) return;
+        if (myTok !== tourToken) { finish("cancel"); return; }
+        const now = performance.now();
+        if (!document.hidden) remaining -= now - last;
+        last = now;
+        if (remaining <= 0) { finish("ok"); return; }
+        setTimeout(tick, Math.min(remaining, 100));
+      };
+      setTimeout(tick, Math.min(remaining, 100));
+    });
+  }
+
+  // ── Stop triggers on the globe host + Escape (added only while touring) ────
+  function tourKeydown(e) {
+    if (e.key === "Escape") stopPlayback();
+    // [I]/[i] INVERT must NOT stop the tour → ignored here.
+  }
+  function addGlobeStopListeners() {
+    const gh = document.getElementById("globe-host");
+    if (gh) {
+      gh.addEventListener("pointerdown", stopPlayback);
+      gh.addEventListener("wheel", stopPlayback, { passive: true });
+    }
+    document.addEventListener("keydown", tourKeydown, true);
+  }
+  function removeGlobeStopListeners() {
+    const gh = document.getElementById("globe-host");
+    if (gh) {
+      gh.removeEventListener("pointerdown", stopPlayback);
+      gh.removeEventListener("wheel", stopPlayback);
+    }
+    document.removeEventListener("keydown", tourKeydown, true);
+  }
+
+  const homeFrames = () => (REDUCE_MOTION ? 1 : undefined);
+
+  // ── Beats ───────────────────────────────────────────────────────────────
+  async function beatA(y, myTok) {
+    setYear(y);
+    setMode("annual");
+    clearPanelHighlights();
+    setPanelFocus(els.paneAnnual);
+    els.statGrowth.textContent = "";                 // growth badge appears at the final step
+    await sceneApi.focusCamera(sceneApi.getHomeCamera(), homeFrames());
+    if (myTok !== tourToken) return;
+    const d = years[y];
+    await countUp(els.statVolume, d.volume, myTok);
+    if (myTok !== tourToken) return;
+    els.statGrowth.textContent = /\d/.test(d.growth) ? d.growth + " YoY" : d.growth;
+    await sleep(TOUR_BEAT_A_MS);
+  }
+
+  async function beatB(y, myTok) {
+    const d = years[y];
+    const sorted = (d.activeRoutes ?? []).slice().sort((a, b) => (b.intensity ?? 0) - (a.intensity ?? 0));
+    const chosen = sorted.find((r) => !(prevFocused.has(r.src) && prevFocused.has(r.dst))) || sorted[0];
+    if (!chosen) { await sleep(TOUR_BEAT_B_MS); return; }
+    const focusHubs = [chosen.src, chosen.dst];       // China origin first, EU side second
+    prevFocused = new Set(focusHubs);
+    for (const hubId of focusHubs) {
+      if (myTok !== tourToken) return;
+      // Clear the previous hub's overlays BEFORE the camera swings to this hub,
+      // so no stale callout floats and the incoming hub isn't dimmed mid-move.
+      sceneApi.hideCallout();
+      sceneApi.setHubEmphasis(null);
+      sceneApi.setRouteSpotlight(null);
+      await sceneApi.focusHub(hubId, { zoomMul: 1.6, frames: homeFrames() });
+      if (myTok !== tourToken) return;
+      sceneApi.setHubEmphasis(hubId);
+      sceneApi.setRouteSpotlight(hubId);
+      const full = sceneApi.showCallout(hubId, y);
+      if (!REDUCE_MOTION && full) {
+        for (let n = 0; n <= full.length; n += 2) {
+          if (myTok !== tourToken) return;
+          sceneApi.setCalloutText(full, n);
+          if ((await sleep(16)) === "cancel") return;
+        }
+        sceneApi.setCalloutText(full, full.length);
+      }
+      if (myTok !== tourToken) return;
+      if ((await sleep(TOUR_BEAT_B_MS)) === "cancel") return;
+    }
+  }
+
+  async function beatC(y, myTok) {
+    await sceneApi.focusCamera(sceneApi.getHomeCamera(), homeFrames());
+    if (myTok !== tourToken) return;
+    sceneApi.setHubEmphasis(null);
+    sceneApi.setRouteSpotlight(null);
+    sceneApi.hideCallout();
+    clearPanelHighlights();
+    setPanelFocus(contextSection());
+    await typeText(els.yearEvent, years[y].event, myTok);
+    if (myTok !== tourToken) return;
+    await sleep(TOUR_BEAT_C_MS);
+  }
+
+  async function endCard(myTok) {
+    showEndCard();
+    const r = await waitEndCard(myTok);
+    hideEndCard();
+    if (r === "cancel" || myTok !== tourToken) return;
+    await sceneApi.focusCamera(sceneApi.getHomeCamera(), homeFrames());
+  }
+
+  // stopPlayback keeps its name + every existing call site (year buttons,
+  // vol-chart columns, openModal). Its body now cancels the tour + restores.
+  function stopPlayback() {
+    if (!alive()) {
+      els.playBtn.textContent = "[ |> PLAY ]";
+      els.playBtn.classList.remove("playing");
+      return;
+    }
+    tourToken = null;                              // invalidates all pending sleeps/typewriters
+    removeGlobeStopListeners();
+    sceneApi.cancelFocus();
+    sceneApi.setHubEmphasis(null);
+    sceneApi.setRouteSpotlight(null);
+    sceneApi.hideCallout();
+    clearPanelHighlights();
+    hideEndCard();
+    // Restore the current year's full static text (typewriters may have left partials).
+    const d = years[currentYear];
+    if (d) {
+      els.yearEvent.textContent = d.event;
+      els.statVolume.textContent = d.volume;
+      els.statGrowth.textContent = /\d/.test(d.growth) ? d.growth + " YoY" : d.growth;
+    }
+    els.playBtn.textContent = "[ |> PLAY ]";
+    els.playBtn.classList.remove("playing");
+    // Camera: LEAVE it wherever it is (natural end already stepped it home).
+  }
+
+  async function startPlayback() {
+    if (alive()) return;                           // double-press guard
+    if (sceneApi.getView() !== "globe") {          // flat → morph to globe first
+      sceneApi.setView("globe");
+      syncViewButtons("globe");
+    }
+    const myTok = tourToken = {};
+    prevFocused = new Set();
     els.playBtn.textContent = "[ [] STOP ]";
     els.playBtn.classList.add("playing");
-    playTimer = setInterval(() => {
-      const next = yearList[yearList.indexOf(currentYear) + 1];
-      if (next === undefined) {
-        stopPlayback();
-        return;
-      }
-      setYear(next);
-      if (next === last) stopPlayback(); // reached 2025 → stop
-    }, PLAY_STEP_MS);
+    addGlobeStopListeners();
+    while (sceneApi.isMorphing()) {
+      if ((await sleep(100)) === "cancel") return;
+      if (myTok !== tourToken) return;
+    }
+    for (const y of yearList) {
+      if (myTok !== tourToken) return;
+      await beatA(y, myTok); if (myTok !== tourToken) return;
+      await beatB(y, myTok); if (myTok !== tourToken) return;
+      await beatC(y, myTok); if (myTok !== tourToken) return;
+    }
+    await endCard(myTok);
+    if (myTok === tourToken) stopPlayback();        // natural end → restore
   }
 
   els.playBtn.addEventListener("click", () => {
-    if (playTimer) stopPlayback();
-    else startPlayback();
+    if (alive()) stopPlayback();
+    else startPlayback();                           // async; fire-and-forget (guarded by alive())
   });
 
   // ── [ GLOBE ] / [ FLAT MAP ] view toggle ──────────────────────────
@@ -2299,6 +2823,7 @@ function initUI({ sceneApi, hubs, years, yearList, initialYear }) {
   }
 
   function requestView(view) {
+    stopPlayback();   // switching view cancels the guided tour (§1.1)
     const now = Date.now();
     // debounce: ignore clicks while the previous morph is still running
     if (now - lastViewSwitch < VIEW_SWITCH_COOLDOWN_MS) return;
