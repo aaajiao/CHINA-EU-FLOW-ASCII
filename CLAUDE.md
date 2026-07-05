@@ -100,6 +100,19 @@
 - 时长常量集中在 ui 片段顶部:`TOUR_BEAT_A_MS 2500 / B 3500(每口岸) / C 3000 / ENDCARD 3000`;callout 打字 2 字符/16ms,event 行 60cps。
 - **改 `index.html` 必须同步 bump `sw.js` 的 `VERSION`**(当前 v2),否则老访客拿 SW 缓存旧 shell。
 
+## 程序化 1-bit 音效系统(2026-07-05,workflow 实现+对抗评审后落地)
+
+为巡航与全套动态细节配套的音效层,作者已耳测认可。**零音频文件、零新网络请求**——全部 Web Audio 运行时合成,是视觉 1-bit 纪律的听觉对应:**mono(无 panner)、音高只允许方波且必须出自 `SND_SCALE` 表**(A=220 基音的小集合),质感靠共享白噪声 buffer 的滤波脉冲;母线 `SND_MASTER 0.4` → DynamicsCompressor 防叠加削波,整体混音刻意安静。
+
+- **结构**:独立 `// === audio.js ===` 片段(palette 与 ui 之间),`const sound = createSoundEngine()`,常量全 `SND_` 前缀。**scene.js 片段零改动**——所有挂钩都在 ui 片段/顶层 handler(自由拖拽/滚轮/粒子无音效,氛围层就是粒子的声音)。
+- **事件映射**(名称见 `sound.play(name)`):boot 进入琶音 / ui.click / year.set(按年份索引升音阶;年份按钮抑制通用 click 防双响)/ type.tick(打字机,≥45ms 节流)/ count.tick / focus.out·focus.home(聚焦扫频,出上行回下行)/ hub.ping(落定声呐:中国起点 330、欧洲侧 440+回声)/ callout.open / context.on / endcard(**氛围 duck 静默 + 55Hz 低击**)/ morph(12 步阶梯滑音,只在视图真正切换时)/ invert(极性翻转双音)/ modal.open·close(开着时氛围压半,modalHold 标志)。
+- **氛围层**:循环噪声→lowpass→gain;`setAmbientYear(y)` 把增益按 rawVolume 缩放(2020 稀→2025 稠)、cutoff 按年份心情表调;过渡用 `setTargetAtTime` ~0.6s——**与色调漂移同构的唯一平滑例外**。稀疏 blip 间隔按 rawDaily 收缩,钳制在 3–8s 带内。
+- **控制/持久化**:`[ SND ]` 按钮(view-toggle 行 INVERT 后)+ `S` 键(复用同一 keydown 监听,同 `i` 的守卫);`localStorage["cnEuFlow.snd"]`,默认 on;解锁手势=进入面板点击(+首个 pointerdown 兜底)。
+- **生命周期陷阱(评审抓的真 bug,别改回去)**:① `ctx.resume()` 是异步的——blip 调度器必须在 `resume().then()` 里再武装,同步调用会在 suspend→resume 循环后**永久死掉**(major);② `setEnabled(false)` 时必须清 `modalHold`,否则挂起态下 modal.close 的 play() 被 `!running()` 门挡住、氛围永久压半。`document.hidden` → suspend,可见+enabled 才 resume(遮挡窗口下"重开声音后 ctx 仍 suspended"是**正确行为**,不是 bug)。
+- **降级红线**:引擎永不 throw、play() 永不 await;无 AudioContext 环境=哑巴 stub,页面行为与无音效版完全一致、零控制台报错。
+- **调试/验收钩子**:`window.__snd = { recent(最近 32 条事件环形日志), state() }`——听不到声音的自动化验收靠它断言接线。
+- sw.js `VERSION` 现为 **v3**(改 index.html 必须继续 bump)。
+
 ## 约束
 
 - 产物核心仍是自包含的 `index.html`(land grid + 字体内联,运行时只抓 glyphcss CDN);**PWA 化后新增 `manifest.webmanifest` / `sw.js` / `icons/` 三类 sidecar——这是"单文件"约束的既定例外**(PWA 本质需要独立的 service worker 与 manifest;icon 也不宜内联)。可视化逻辑本身仍单文件。陆地网格数据烘焙后内联进 HTML,不依赖运行时抓取 world-atlas。
