@@ -1,5 +1,7 @@
 # CHINA-EU FLOW ASCII
 
+![CHINA-EU FLOW ASCII — the 2025 view: an ASCII Earth of China→EU parcel routes (Shein vermillion @, Temu cyan *) beside a terminal data panel reading ~5.9 billion low-value parcels](preview.png)
+
 An ASCII data visualization of China→EU cross-border e-commerce parcel logistics
 (Shein / Temu, 2020–2025) — the "deflation export" flowing through the de minimis
 customs channel, rendered as a 1-bit ink/paper terminal.
