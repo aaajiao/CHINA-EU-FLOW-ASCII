@@ -86,6 +86,7 @@
 - **boot 安全**:SW 注册是独立 classic `<script>`,仅在 window `load` 触发,不碰 `window.__cdnFailTimer` / module 的 `clearTimeout` / 首屏渲染。
 - **theme-color 跟随年份漂移**:一个防御性 IIFE 每秒把 `<meta name="theme-color">` 同步为当前 `--paper`;splash 仍用 manifest 的 `#000000` background_color(与图标黑底无缝)。name/short_name = `CHINA-EU FLOW ASCII` / `CN-EU FLOW`。
 - 集成方式:用一次性 Node 脚本从 workflow 输出 JSON 精确抽取 manifest/sw/head/registration 并写入(带**幂等守卫**;曾因重复插入过一次全部 PWA 块,已 `git checkout` 回滚+加守卫修复)。手动改 PWA 时注意别重复注入:`grep -c 'rel="manifest"' index.html` 应为 1。
+- **部署(2026-07-05 起)**:Pages 改走 `.github/workflows/pages.yml`(官方 Actions 路径:checkout v7 / configure-pages v6 / upload-pages-artifact v5 / deploy-pages v5,无 Jekyll 处理;`build_type=workflow` 已由 API 切换)。**弃用 legacy 自动流水线**——它钉着 Node 20 世代的 action(弃用警告仓库侧无法消除),且实测会与 push 竞态、部署旧 head,还出过 "Deployment failed, try again later" 的瞬时故障。
 
 ## PLAY → 引导式巡航(2026-07-05,workflow 实现+对抗评审后落地,commit 4e5e451)
 
