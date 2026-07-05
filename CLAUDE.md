@@ -27,6 +27,8 @@
 
 ## glyphcss 关键事实(已验证)
 
+> ⚠️ 本节描述的是**官方 world 示例**的约定。其中「经度符号」与「depth 正负」两条,在实测的 0.0.9 里是**相反的**,本项目采用相反约定——以下方「glyphcss 0.0.9 与官网 world 示例的约定差异」节为准,不要照本节的 `-sin(lon)` / `depth < 0` 改代码。
+
 - 把 3D 多边形网格光栅化为单个 `<pre>` 里的 ASCII 字符,无 WebGL/canvas。
 - CDN:`https://esm.sh/glyphcss`(ESM);npm 包 `glyphcss` / `@glyphcss/react`。
 - Headless API:`createGlyphOrthographicCamera({rotX, rotY, zoom})` + `createGlyphScene(host, {camera, mode, useColors, glyphPalette, directionalLight, ambientLight, autoSize})`;`scene.add(polygons)` 返回可 `dispose()` 的 handle;`scene.rerender()` 手动重渲。
@@ -39,7 +41,7 @@
 
 ## 项目定位(2026-07-04 更新)
 
-本可视化服务于 aaajiao 的 **Symbiosis** 项目(https://github.com/aaajiao/poly-cam-work/blob/main/docs/aaajiao_symbiosis_project.md),是其"通缩输出"(deflation export)叙事的数据可视化组件;视觉风格对标同项目的 **1bit 游戏/嵌合体废墟**(https://github.com/aaajiao/1bit ,Three.js + 1-bit 抖动渲染)。1bit 游戏关键源码副本在 scratchpad `1bit-refs/` 下(DitherShader、RoomConfig、main.css 等)。
+本可视化服务于 aaajiao 的 **Symbiosis** 项目(https://github.com/aaajiao/poly-cam-work/blob/main/docs/aaajiao_symbiosis_project.md),是其"通缩输出"(deflation export)叙事的数据可视化组件;视觉风格对标同项目的 **1bit 游戏/嵌合体废墟**(https://github.com/aaajiao/1bit ,Three.js + 1-bit 抖动渲染,DitherShader/RoomConfig/main.css 等可在该仓库查阅)。
 
 ## 1-bit 风格改造决定(2026-07-04)
 
@@ -53,15 +55,16 @@
 - **字体**:内嵌 WebPlus_IBM_VGA_8x16 位图字体(base64 WOFF ~30KB,CC BY-SA 4.0,INFO modal 页脚署名 int10h.org/VileR);场景 `.glyph-output` 与 UI 统一;16px 整数尺寸、line-height:1;层级靠 reverse-video 与留白,不靠小字号。
 - **框线**:Unicode 制表符——单线 `┌─│` 常规面板、双线 `╔═║` 进入面板与 modal;旧 CSS 2px 边框退役,面板尺寸锁 ch 网格。
 - **组件字符化**:年度柱状图=`█` 字符柱;份额条=`SHEIN @@@@···· 65%`(@/* 与粒子编码统一);仪表=`[####----] 22%`;按钮=`[ 2020 ]`,选中态 reverse-video;`▶⏹×▪`→`|> [] [X] *`;动效硬切/steps(),仅年份色调漂移保留 600ms 过渡。
-- 增补规格:scratchpad `ASCII_UI_SPEC.md`;字体资产:scratchpad `vga-font-base64.txt`。
+- VGA 字体已 base64 内联进 `index.html`(`@font-face`,署名见 INFO modal 页脚);当初的增补规格/字体资产存于会话 scratchpad,属临时文件已随会话清理,不必找。
 
 ## 已确认的设计决定(2026-07-04)
 
 - 两个原型**合并成一个新页面**(数据互补:年度总量+航线 / 日均量+平台份额+事件)。
 - 地图形态:**ASCII 球体 + ASCII 平面,可切换**(球体↔平面优先尝试顶点插值 morph,性能不行则降级为交叉淡入切换)。
 - 工程形态:**单文件 HTML + esm.sh CDN**。
-- UI 全保留:粒子流动动画(Shein=琥珀/Temu=青)、年份时间轴+自动播放、数据面板、Info & Context 弹窗。
-- 配色:对标 glyphcss.com world 示例的暗底琥珀(rgba(255,232,184) 系),与原型1的 HUD 琥珀色一致。
+- UI 全保留:粒子流动动画、年份时间轴、数据面板、Info & Context 弹窗。
+  - 后续演进:粒子专色改为朱/青(见「双色调 + 货物专色」节,权威值 `--shein-ink`/`--temu-ink`);时间轴的"自动播放"于 2026-07-05 被引导式巡航取代(见「PLAY → 引导式巡航」节)。
+- 配色:**最初**对标 glyphcss.com world 示例的暗底琥珀,后于 2026-07-04 整体转为 1-bit 墨/纸双色调 + 货物专色(见「1-bit 风格改造决定」节)——暗底琥珀方案已废弃,勿据此段回退配色。
 
 ## glyphcss 0.0.9 与官网 world 示例的约定差异(实测发现,2026-07-04)
 
@@ -99,7 +102,7 @@
 - **FLAT 起播**:先 `setView("globe")` 再轮询 `isMorphing()` 等 morph 完成才开始;结束后不自动切回 FLAT。
 - **巡航文案红线**:`tourDesc`(12 个 hub,全大写、≤32 字符/行、纯定性、**禁止任何数字**);callout 的 TYPE 行 LHR 特判为 **"UK DESTINATION"**(post-Brexit,不能写 EU DESTINATION——评审抓到的事实错误);面板高亮箭头用 **► U+25BA**(CP437,内嵌 VGA 字体有此字形;U+25B6 ▶ 会 fallback 到系统字体破坏点阵观感)。
 - 时长常量集中在 ui 片段顶部:`TOUR_BEAT_A_MS 2500 / B 3500(每口岸) / C 3000 / ENDCARD 3000`;callout 打字 2 字符/16ms,event 行 60cps。
-- **改 `index.html` 必须同步 bump `sw.js` 的 `VERSION`**(当前 v2),否则老访客拿 SW 缓存旧 shell。
+- **改 `index.html` 必须同步 bump `sw.js` 的 `VERSION`**(巡航落地时 v1→v2;当前值见音效节末尾的权威记录),否则老访客拿 SW 缓存旧 shell。
 
 ## 程序化 1-bit 音效系统(2026-07-05,workflow 实现+对抗评审后落地)
 
