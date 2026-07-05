@@ -1,0 +1,35 @@
+# Deploys the site to GitHub Pages via the official Actions path.
+# Migrated off the legacy pipeline 2026-07-05: it pinned Node 20-era
+# actions (deprecation warnings we can't fix) and raced pushes,
+# building stale heads. No build step — the site is static files
+# served verbatim (and no Jekyll pass, unlike the legacy pipeline).
+name: pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/configure-pages@v6
+      - uses: actions/upload-pages-artifact@v5
+        with:
+          path: .
+      - id: deployment
+        uses: actions/deploy-pages@v5
